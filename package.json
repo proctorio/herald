@@ -1,6 +1,6 @@
 {
   "name": "lectern",
-  "version": "0.1.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Lectern: a local-first text to speech reader for the browser, built for locked-down assessment environments.",
