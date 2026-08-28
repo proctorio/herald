@@ -8,7 +8,7 @@ time, and what manual QA covers before or alongside review.
 
 | Item | Status |
 |---|---|
-| Production artifact | `build/lectern-1.0.0.zip`, built from dist by `npm run package` (322 KB, 78 entries) |
+| Production artifact | `build/lectern-<version>.zip` (production, clean icons and name) and `build/lectern-beta-<version>.zip` (beta, stamped icons and Beta name), both built by `npm run package` |
 | Audit scripts clean against the UNPACKED ZIP, not just the tree | PASS (the packaging gate also fixed a hole where dist audits scanned nothing; a canary test now proves the gate is live) |
 | No `key`, no `oauth2`, MV3, version 1.0.0 | PASS (`verify-manifest.sh`: 0 blocking) |
 | Five install permissions, no install-time host permissions, every permission justified | PASS (`PERMISSIONS.md`) |

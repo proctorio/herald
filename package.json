@@ -14,7 +14,7 @@
     "lint:check": "eslint src/js test",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "package": "npm run build && node tools/package.js",
+    "package": "node tools/package.js",
     "audit:remote": "bash scripts/audit-remote-code.sh dist",
     "audit:manifest": "bash scripts/verify-manifest.sh dist/manifest.json",
     "test:integration": "npm run build && playwright test"

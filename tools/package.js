@@ -1,24 +1,37 @@
 /**
- * Builds the Chrome Web Store artifact: a zip of dist/ plus the LICENSE and
- * NOTICE attribution files, named by the manifest version. Portable across
- * the Windows dev machines and the Linux agents (no shell zip dependency).
- * Source maps and any test build never reach the artifact because dist/ is
- * produced fresh by tools/build.js and contains neither.
+ * Builds the Chrome Web Store artifacts: one zip per store channel, named by
+ * the manifest version.
+ *
+ *   build/lectern-<version>.zip       production: clean icons, clean name
+ *   build/lectern-beta-<version>.zip  beta: stamped icons, Beta listing name
+ *
+ * Each zip comes from a fresh channel build of dist/ (tools/build.js), so
+ * the working dist state, usually a dev-stamped local build, can never leak
+ * into an artifact. Portable across the Windows dev machines and the Linux
+ * agents (no shell zip dependency). Source maps never reach an artifact.
+ * dist/ is left as the prod build because prod is packaged last.
  */
-import { copyFileSync, mkdirSync, rmSync, readFileSync } from "node:fs";
+import { mkdirSync, rmSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import AdmZip from "adm-zip";
-
-const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf-8"));
-const artifact = `build/lectern-${manifest.version}.zip`;
-
-copyFileSync("LICENSE", "dist/LICENSE");
-copyFileSync("NOTICE", "dist/NOTICE");
 
 rmSync("build", { recursive: true, force: true });
 mkdirSync("build", { recursive: true });
 
-const zip = new AdmZip();
-zip.addLocalFolder("dist", "", entry => !entry.endsWith(".map"));
-zip.writeZip(artifact);
+for (const channel of ["beta", "prod"])
+{
+	execFileSync(process.execPath, ["tools/build.js"], {
+		stdio: "inherit",
+		env: { ...process.env, LECTERN_CHANNEL: channel }
+	});
 
-console.info(`${artifact} written`);
+	const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf-8"));
+	const infix = channel === "prod" ? "" : `${channel}-`;
+	const artifact = `build/lectern-${infix}${manifest.version}.zip`;
+
+	const zip = new AdmZip();
+	zip.addLocalFolder("dist", "", entry => !entry.endsWith(".map"));
+	zip.writeZip(artifact);
+
+	console.info(`${artifact} written`);
+}

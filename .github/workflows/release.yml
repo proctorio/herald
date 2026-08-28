@@ -38,12 +38,18 @@ jobs:
           bash scripts/audit-remote-code.sh dist
           bash scripts/verify-manifest.sh dist/manifest.json
       - run: npm run package
-      - name: Audit the unpacked store artifact
+      - name: Audit the unpacked store artifacts
         run: |
-          unzip -q "build/lectern-${GITHUB_REF_NAME#release/}.zip" -d build/unpacked
-          bash scripts/audit-remote-code.sh build/unpacked
-          bash scripts/verify-manifest.sh build/unpacked/manifest.json
+          ver="${GITHUB_REF_NAME#release/}"
+          unzip -q "build/lectern-${ver}.zip" -d build/unpacked-prod
+          unzip -q "build/lectern-beta-${ver}.zip" -d build/unpacked-beta
+          for dir in build/unpacked-prod build/unpacked-beta; do
+            bash scripts/audit-remote-code.sh "$dir"
+            bash scripts/verify-manifest.sh "$dir/manifest.json"
+          done
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "build/lectern-${GITHUB_REF_NAME#release/}.zip" --title "v${GITHUB_REF_NAME#release/}" --generate-notes || echo "release already exists"
+        run: |
+          ver="${GITHUB_REF_NAME#release/}"
+          gh release create "$GITHUB_REF_NAME" "build/lectern-${ver}.zip" "build/lectern-beta-${ver}.zip" --title "v${ver}" --generate-notes || echo "release already exists"
