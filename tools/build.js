@@ -6,7 +6,7 @@
  * are bundled (they must run as classic scripts, so their ESM sources are
  * flattened to IIFE), and only when content entry points exist.
  */
-import { cpSync, rmSync, mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, rmSync, mkdirSync, existsSync, copyFileSync } from "node:fs";
 import { buildSync } from "esbuild";
 
 const CONTENT_ENTRIES = "src/js/content-entries";
@@ -34,40 +34,30 @@ if (existsSync(CONTENT_ENTRIES))
 	});
 }
 
-// Channel assembly. Every build produces dist/ for exactly one channel and
-// the stamp source sets under img/ never ship in any of them:
-//   dev  (the default locally): dev-stamped icons, so a side-loaded unpacked
-//        build is visibly a dev build in the toolbar.
-//   beta: beta-stamped icons plus the Beta listing name baked into the
-//        locale (the store rejects duplicate-name listings; the clean name
-//        belongs to the production listing).
-//   prod (the default on CI, TF_BUILD): clean icons, clean name.
-// tools/package.js builds the beta and prod store zips from fresh builds.
+// Channel icons. The committed manifest icons (img/icon-*.png) ARE the
+// dev-stamped set, pre-compiled by the internal icon tooling, so a raw
+// checkout or a default local build side-loads with the dev logo and no
+// build step is needed to get it. img/prod holds the clean store art; the
+// prod channel (the default on CI, TF_BUILD) swaps it over the manifest
+// icons for store packages. Beta channel branding is applied by the
+// internal release pipeline, never here: the public repo carries no
+// stamping logic and no badge art.
 const channel = process.env.LECTERN_CHANNEL ?? (process.env.TF_BUILD ? "prod" : "dev");
 
-if (!["dev", "beta", "prod"].includes(channel))
+if (!["dev", "prod"].includes(channel))
 {
-	throw new Error(`Unknown LECTERN_CHANNEL "${channel}"; valid channels: dev, beta, prod`);
+	throw new Error(`Unknown LECTERN_CHANNEL "${channel}"; valid channels: dev, prod`);
 }
 
-if (channel !== "prod")
+if (channel === "prod")
 {
 	for (const size of [16, 32, 48, 128])
 	{
-		copyFileSync(`dist/img/${channel}/icon-${size}.png`, `dist/img/icon-${size}.png`);
+		copyFileSync(`dist/img/prod/icon-${size}.png`, `dist/img/icon-${size}.png`);
 	}
 }
 
-if (channel === "beta")
-{
-	const messagesPath = "dist/_locales/en/messages.json";
-	const messages = JSON.parse(readFileSync(messagesPath, "utf-8"));
-	messages.extension_name.message = "Lectern Beta: Text to Speech Reader";
-	messages.extension_short_name.message = "Lectern Beta";
-	writeFileSync(messagesPath, `${JSON.stringify(messages, null, "\t")}\n`);
-}
-
-rmSync("dist/img/beta", { recursive: true, force: true });
-rmSync("dist/img/dev", { recursive: true, force: true });
+// The clean-art source set never ships as a directory in any build.
+rmSync("dist/img/prod", { recursive: true, force: true });
 
 console.info(`dist/ built (${channel} channel)`);

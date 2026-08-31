@@ -38,18 +38,19 @@ jobs:
           bash scripts/audit-remote-code.sh dist
           bash scripts/verify-manifest.sh dist/manifest.json
       - run: npm run package
-      - name: Audit the unpacked store artifacts
+      # Only the production package is attached: it is fully reproducible
+      # from this public tree. The beta channel package is assembled by the
+      # internal release pipeline (beta branding is applied there) and only
+      # ever exists between that pipeline and the Chrome Web Store.
+      - name: Audit the unpacked store artifact
         run: |
           ver="${GITHUB_REF_NAME#release/}"
-          unzip -q "build/lectern-${ver}.zip" -d build/unpacked-prod
-          unzip -q "build/lectern-beta-${ver}.zip" -d build/unpacked-beta
-          for dir in build/unpacked-prod build/unpacked-beta; do
-            bash scripts/audit-remote-code.sh "$dir"
-            bash scripts/verify-manifest.sh "$dir/manifest.json"
-          done
+          unzip -q "build/lectern-${ver}.zip" -d build/unpacked
+          bash scripts/audit-remote-code.sh build/unpacked
+          bash scripts/verify-manifest.sh build/unpacked/manifest.json
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           ver="${GITHUB_REF_NAME#release/}"
-          gh release create "$GITHUB_REF_NAME" "build/lectern-${ver}.zip" "build/lectern-beta-${ver}.zip" --title "v${ver}" --generate-notes || echo "release already exists"
+          gh release create "$GITHUB_REF_NAME" "build/lectern-${ver}.zip" --title "v${ver}" --generate-notes || echo "release already exists"
