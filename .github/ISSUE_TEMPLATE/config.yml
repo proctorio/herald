@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: Questions and ideas
-    url: https://github.com/proctorio/lectern/discussions
+    url: https://github.com/proctorio/herald/discussions
     about: Ask questions or propose ideas in Discussions.
   - name: Security or privacy report
-    url: https://github.com/proctorio/lectern/security/advisories/new
+    url: https://github.com/proctorio/herald/security/advisories/new
     about: Report privately; please do not open a public issue for exploitable problems.

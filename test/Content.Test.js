@@ -119,7 +119,7 @@ describe("contentScript endpoint", () =>
 
 	it("delegates getCurrentIndex and getTexts to the active handler", async() =>
 	{
-		vi.stubGlobal("lecternDoc", {
+		vi.stubGlobal("heraldDoc", {
 			getCurrentIndex: () => 7,
 			getTexts: index => [`text for ${index}`]
 		});
@@ -137,7 +137,7 @@ describe("contentScript endpoint", () =>
 
 	it("returns the selection split into paragraphs for the selection index", async() =>
 	{
-		vi.stubGlobal("lecternDoc", {
+		vi.stubGlobal("heraldDoc", {
 			getSelectedText: () => "chosen one\n\nchosen two"
 		});
 

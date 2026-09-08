@@ -1,9 +1,9 @@
 {
-  "name": "lectern",
+  "name": "herald",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Lectern: a local-first text to speech reader for the browser, built for locked-down assessment environments.",
+  "description": "Herald: a local-first text to speech reader for the browser, built for locked-down assessment environments.",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/proctorio/lectern.git"
+    "url": "git+https://github.com/proctorio/herald.git"
   },
   "keywords": [
     "text-to-speech",
@@ -31,9 +31,9 @@
   "author": "Proctorio",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/proctorio/lectern/issues"
+    "url": "https://github.com/proctorio/herald/issues"
   },
-  "homepage": "https://github.com/proctorio/lectern",
+  "homepage": "https://github.com/proctorio/herald",
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.62.1",

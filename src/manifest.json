@@ -9,7 +9,13 @@
   "minimum_chrome_version": "99",
 
   "action": {
-    "default_popup": "popup.html?isPopup=1"
+    "default_popup": "popup.html?isPopup=1",
+    "default_icon": {
+      "16": "img/action-16.png",
+      "32": "img/action-32.png",
+      "48": "img/action-48.png",
+      "128": "img/action-128.png"
+    }
   },
   "icons": {
     "16": "img/icon-16.png",

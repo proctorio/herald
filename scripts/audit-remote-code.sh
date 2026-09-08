@@ -2,7 +2,7 @@
 #
 # audit-remote-code.sh
 #
-# Scans for the three things that must not ship in Lectern:
+# Scans for the three things that must not ship in Herald:
 #   1. Upstream identity (extension ID, author domains, inherited OAuth client)
 #   2. Upstream-hosted services (S3 bucket, synthesis endpoints)
 #   3. Remotely hosted code (any http/https script reference)
@@ -107,7 +107,7 @@ report() {
   fi
 }
 
-echo "Lectern remote code audit"
+echo "Herald remote code audit"
 echo "target: $DISPLAY_TARGET"
 echo
 

@@ -1,7 +1,7 @@
 # Privacy Policy Skeleton
 
 Draft pending final legal sign-off. Hosted by the public repository at
-https://github.com/proctorio/lectern/blob/main/docs/lectern/PRIVACY.md and linked from
+https://github.com/proctorio/herald/blob/main/docs/herald/PRIVACY.md and linked from
 the Chrome Web Store listing (decided: the repository is the public home for the
 policy, support, and contact).
 
@@ -11,25 +11,25 @@ privacy-forward extension.
 
 ---
 
-## Lectern Privacy Policy
+## Herald Privacy Policy
 
 Last updated: 2026-08-17 (draft pending legal review and hosting URL)
 
 ### Summary
 
-Lectern is a browser extension for Google Chrome, published and maintained by
+Herald is a browser extension for Google Chrome, published and maintained by
 Proctorio Incorporated of Scottsdale, Arizona. It reads web page text aloud using the
-voices your device provides. Lectern itself makes no network requests. There is no
+voices your device provides. Herald itself makes no network requests. There is no
 account, no sign-in, and no analytics. The only way text can leave your machine is if
 you choose a network voice supplied by your browser, described below.
 
-### What Lectern accesses
+### What Herald accesses
 
-- **Page text you ask it to read.** When you invoke a read action, Lectern reads text from
-  the active tab in order to pass it to your device's speech engine. Lectern does not
+- **Page text you ask it to read.** When you invoke a read action, Herald reads text from
+  the active tab in order to pass it to your device's speech engine. Herald does not
   transmit, log, or store that text.
 - **Your preferences.** Voice selection, speech rate, pitch, and mode settings are stored
-  locally in browser storage on your device. Lectern does not use browser sync, and
+  locally in browser storage on your device. Herald does not use browser sync, and
   nothing is sent to any server operated by Proctorio.
 
 ### Browser-provided network voices
@@ -37,29 +37,29 @@ you choose a network voice supplied by your browser, described below.
 Some browsers and operating systems offer network-backed voices through their built-in
 speech engines (for example, Google network voices in Chrome). If you select one of
 these voices, your browser sends the text to that voice provider to synthesize the
-audio. That transmission is performed by the browser, not by Lectern, and is governed
+audio. That transmission is performed by the browser, not by Herald, and is governed
 by the browser vendor's privacy policy. Voices your browser marks as local are
 processed entirely on your device. Exam-safe mode never uses a network voice,
 regardless of your voice setting.
 
 ### Browser permissions
 
-Installing Lectern asks you to grant these Chrome permissions. They are the complete
+Installing Herald asks you to grant these Chrome permissions. They are the complete
 set the extension declares, and each exists solely to read the current page aloud:
 
 - **Read the page you invoke it on (activeTab).** Grants access to the current tab's
-  content only when you click Lectern's button or use its keyboard shortcut, and only
+  content only when you click Herald's button or use its keyboard shortcut, and only
   until that tab navigates away.
 - **Add a right-click menu entry (contextMenus).** Provides the "read selection"
   context-menu item.
-- **Run its reader script (scripting).** Lets Lectern place its text-extraction script
+- **Run its reader script (scripting).** Lets Herald place its text-extraction script
   into the page you asked it to read.
 - **Save your settings (storage).** Stores your voice, rate, pitch, and mode
   preferences locally on your device.
 - **Speak (tts).** Uses the browser's text-to-speech engine and the voices installed
   on your device.
 
-Two kinds of optional permission exist that Lectern requests only at the point of use,
+Two kinds of optional permission exist that Herald requests only at the point of use,
 with a Chrome prompt you can decline: locating readable content inside embedded frames
 on sites that require it (webNavigation), and reading a specific site or local file
 whose viewer needs direct access (site access you approve per request). Nothing
@@ -68,9 +68,9 @@ extension settings.
 
 ### Cookies and tracking technologies
 
-Lectern does not use cookies, web beacons, or similar tracking technologies.
+Herald does not use cookies, web beacons, or similar tracking technologies.
 
-### What Lectern does not do
+### What Herald does not do
 
 - Does not create an account or require sign-in.
 - Does not collect analytics, usage statistics, or crash reports.
@@ -82,50 +82,50 @@ Lectern does not use cookies, web beacons, or similar tracking technologies.
 
 ### Exam-safe mode
 
-When exam-safe mode is active, Lectern uses only local device voices, disables any
+When exam-safe mode is active, Herald uses only local device voices, disables any
 network-capable feature regardless of user setting, and reads only the active tab.
-In the current release, exam-safe mode is enabled from Lectern's options page;
+In the current release, exam-safe mode is enabled from Herald's options page;
 institutions may instruct test takers to enable it before an assessment.
 
 ### Use during proctored exams
 
-If you use Lectern during a proctored assessment, the proctoring software in use (for
+If you use Herald during a proctored assessment, the proctoring software in use (for
 example Proctorio) may record the exam session, including audio and the screen. Those
-recordings can capture the text Lectern displays or speaks aloud. Such recordings are
+recordings can capture the text Herald displays or speaks aloud. Such recordings are
 made by the proctoring service under your institution's agreements and the proctoring
-provider's own privacy policy; they are not made by Lectern and are not governed by
+provider's own privacy policy; they are not made by Herald and are not governed by
 this policy.
 
 ### Children's privacy and regulatory posture
 
-Lectern is used in K-12 and higher education settings. The statements below address
+Herald is used in K-12 and higher education settings. The statements below address
 FERPA, COPPA, GDPR, and other applicable data privacy regulations.
 
 #### FERPA (Family Educational Rights and Privacy Act)
 
-Lectern is often used within institutional learning environments alongside assessment
-tools like Proctorio. Because Lectern processes page text entirely on the user's device
+Herald is often used within institutional learning environments alongside assessment
+tools like Proctorio. Because Herald processes page text entirely on the user's device
 and never transmits or stores that text, it does not create, receive, or maintain
-education records on behalf of any institution. Lectern does not function as a "school
+education records on behalf of any institution. Herald does not function as a "school
 official" under FERPA and does not require a separate data-sharing or data-processing
-agreement, since no student data leaves the device through Lectern's operation.
+agreement, since no student data leaves the device through Herald's operation.
 
 #### COPPA (Children's Online Privacy Protection Act)
 
-Lectern does not collect personal information from any user, including children under
+Herald does not collect personal information from any user, including children under
 13. It does not require an account, does not use persistent identifiers to track users
-across sites or sessions, and does not serve behavioral advertising. Because Lectern
+across sites or sessions, and does not serve behavioral advertising. Because Herald
 collects no personal information from any user, it does not meet COPPA's definition of
 an operator that collects information from children, and verifiable parental consent
-requirements are not triggered. Where a school deploys Lectern on students' behalf, no
-additional parental consent is needed given Lectern's no-collection design.
+requirements are not triggered. Where a school deploys Herald on students' behalf, no
+additional parental consent is needed given Herald's no-collection design.
 
 #### GDPR / UK GDPR (EU, EEA, and UK users)
 
-Lectern does not process personal data as defined under GDPR Article 4(1). Page text
+Herald does not process personal data as defined under GDPR Article 4(1). Page text
 and preference settings are handled entirely on the user's device and are never
-transmitted by Lectern to Proctorio or any third party. Because no personal data is
-collected, Lectern does not act as a data controller or processor, and GDPR
+transmitted by Herald to Proctorio or any third party. Because no personal data is
+collected, Herald does not act as a data controller or processor, and GDPR
 requirements concerning lawful basis, data subject access requests, the right to
 erasure, and cross-border transfer safeguards (SCCs, adequacy decisions) do not apply
 to its current functionality. If a future version introduces any network-connected
@@ -134,16 +134,16 @@ basis, data controller, and applicable safeguards.
 
 #### International Data Transfers
 
-Because Lectern does not collect or transmit personal data, there are no international
-transfers of personal data by Lectern to disclose. Where a user selects a
+Because Herald does not collect or transmit personal data, there are no international
+transfers of personal data by Herald to disclose. Where a user selects a
 browser-provided network voice (see "Browser-provided network voices" above), any
-resulting transmission of text is performed by the browser vendor, not Lectern, and is
+resulting transmission of text is performed by the browser vendor, not Herald, and is
 governed by that vendor's own privacy policy, including whatever international-transfer
 safeguards that vendor has in place.
 
 #### CCPA / CPRA (California)
 
-Lectern does not sell, share, or collect personal information as defined under the
+Herald does not sell, share, or collect personal information as defined under the
 CCPA/CPRA. Because no personal information is held, there is nothing to act on for
 requests to know, delete, correct, or opt out of sale or sharing. If this changes,
 Proctorio will update this policy and provide a mechanism for exercising these rights
@@ -151,8 +151,8 @@ before any collection begins.
 
 #### State student privacy laws (SOPIPA, SOPPA, and similar)
 
-Because Lectern is used in K-12 settings, this covers laws like California's SOPIPA,
-Illinois' SOPPA, and comparable state student-data statutes. Lectern does not use
+Because Herald is used in K-12 settings, this covers laws like California's SOPIPA,
+Illinois' SOPPA, and comparable state student-data statutes. Herald does not use
 student data for targeted advertising, does not build student profiles, does not sell
 student data, and does not retain student data of any kind, consistent with these laws'
 core obligations.
@@ -161,38 +161,38 @@ core obligations.
 
 Suggested vendor supplement language for districts that require one:
 
-> Lectern Parents' Bill of Rights Supplement: Lectern does not collect, store, or
+> Herald Parents' Bill of Rights Supplement: Herald does not collect, store, or
 > transmit personally identifiable student information. All text-to-speech processing
 > occurs locally on the student's device, using voices already installed in the
 > operating system or browser. No student data is shared with Proctorio, the school, or
-> any third party through Lectern's operation.
+> any third party through Herald's operation.
 
 #### Other jurisdictions
 
-Lectern's design (no collection, no transmission, no storage of user data) means it
+Herald's design (no collection, no transmission, no storage of user data) means it
 does not trigger obligations under other regional or sectoral privacy laws, including
 Canada's PIPEDA, Australia's Privacy Act, and U.S. state comprehensive privacy laws
-such as Virginia's VCDPA or Colorado's CPA. If Lectern's functionality changes to
+such as Virginia's VCDPA or Colorado's CPA. If Herald's functionality changes to
 include data collection or network transmission, this policy will be updated to address
 the applicable requirements before that change takes effect.
 
 ### Changes
 
 Material changes to this policy will be announced in the extension's release
-notes and reflected in the date above. Because Lectern collects nothing,
+notes and reflected in the date above. Because Herald collects nothing,
 changes are expected to be rare and editorial.
 
 ### Contact
 
-Lectern is developed in the open, and its public repository is the way to reach the
+Herald is developed in the open, and its public repository is the way to reach the
 people who build it:
 
 - **Questions about this policy or anything else:** open an issue at
-  https://github.com/proctorio/lectern/issues or start a discussion at
-  https://github.com/proctorio/lectern/discussions. Issues are read and answered by
+  https://github.com/proctorio/herald/issues or start a discussion at
+  https://github.com/proctorio/herald/discussions. Issues are read and answered by
   the maintainers.
 - **Accessibility barriers:** use the dedicated accessibility issue template at the
   same address; these reports are treated as high priority.
 - **Security or privacy vulnerability reports:** use the repository's private
-  vulnerability reporting at https://github.com/proctorio/lectern/security so the
+  vulnerability reporting at https://github.com/proctorio/herald/security so the
   report is not public before it is addressed.

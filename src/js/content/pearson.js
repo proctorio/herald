@@ -9,10 +9,10 @@ function findNavButton(arrowSelector, labelSelector)
 var prevBtn = findNavButton("svg.leftArrow", "button[aria-label^=prev]");
 var nextBtn = findNavButton("svg.rightArrow", "button[aria-label^=next]");
 
-var rad = lecternDoc;
+var rad = heraldDoc;
 var currentIndex = 0;
 
-lecternDoc = {
+heraldDoc = {
 	getCurrentIndex()
 	{
 		return currentIndex = 0;

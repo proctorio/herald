@@ -290,7 +290,7 @@ export function getActiveTab()
  * EXAM-SAFE MODE (milestone M5)
  */
 
-// When exam-safe mode is on, Lectern reads the active tab only. playTab
+// When exam-safe mode is on, Herald reads the active tab only. playTab
 // already targets the active tab by default; this guard enforces the
 // constraint for every caller that passes an explicit tab, so no future
 // caller can bypass it.

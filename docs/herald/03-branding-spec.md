@@ -2,7 +2,7 @@
 
 ## Name
 
-**Lectern.**
+**Herald.**
 
 Latin root (`legere`, to read). The object you read aloud from. Academic without being clinical. Three syllables that every screen reader and TTS engine pronounces correctly on first pass, which matters more than usual here because a meaningful share of users will hear the product name before they see it.
 
@@ -20,20 +20,20 @@ Clearance status: no collision surfaced in the Chrome Web Store, npm, or the TTS
 | Readvox, Voice Out, Verbose, Talkie, Audeus, Capti, TTSReader, ElevenReader | Taken. |
 | NaturalReader, Speechify, TextAloud, ReadPlease, Kurzweil, Texthelp | Registered marks. |
 
-Held alternates if Lectern fails clearance: **Rostrum**, **Sonant**, **Praelector**.
+Held alternates if Herald fails clearance: **Rostrum**, **Sonant**, **Praelector**.
 
 ## Proctorio's relationship to the brand
 
 Keep Proctorio out of the product name. Put it in the publisher field and the description.
 
-Rationale: the institutional credibility and the VPAT lineage are worth having, but a student encountering a Proctorio-branded accessibility tool reads it as surveillance, and adoption suffers. "Lectern, from Proctorio" in the listing gets the credibility without the baggage. It also keeps the extension genuinely useful outside exam contexts, which strengthens the unique-value argument in store review.
+Rationale: the institutional credibility and the VPAT lineage are worth having, but a student encountering a Proctorio-branded accessibility tool reads it as surveillance, and adoption suffers. "Herald, from Proctorio" in the listing gets the credibility without the baggage. It also keeps the extension genuinely useful outside exam contexts, which strengthens the unique-value argument in store review.
 
 ## Manifest fields
 
 ```jsonc
 {
-  "name": "__MSG_extName__",           // "Lectern"
-  "short_name": "Lectern",
+  "name": "__MSG_extName__",           // "Herald"
+  "short_name": "Herald",
   "description": "__MSG_extDescription__",
   "version": "1.0.0",                  // reset. Do not inherit upstream's 2.x line.
   "manifest_version": 3
@@ -57,12 +57,12 @@ Requirements:
 - Sizes: 16, 32, 48, 128 at minimum. Provide a 440x280 small promo tile for the store.
 - Must be legible at 16px in both light and dark browser themes.
 - Must not resemble the upstream icon. Different silhouette, different color family.
-- Concept direction: the lectern silhouette, or a simplified sound-from-page mark. Avoid speaker cones and sound waves, which is what every competitor uses.
+- Concept direction: the herald silhouette, or a simplified sound-from-page mark. Avoid speaker cones and sound waves, which is what every competitor uses.
 - Provide a monochrome variant for high contrast mode.
 
 ## Store listing copy
 
-Title field: `Lectern, Text to Speech Reader`
+Title field: `Herald, Text to Speech Reader`
 
 Do not keyword-stuff the title. Do not put "Proctorio" in the title.
 
@@ -75,17 +75,17 @@ Long description must establish four things, in this order:
 1. **What it does.** Reads selected text or full pages aloud with your operating system and browser voices. Keyboard driven. Works alongside screen readers rather than fighting them.
 2. **The privacy claim, stated plainly.** Default mode makes zero network requests. Text never leaves the device. No account, no sign-in, no analytics.
 3. **Who it is for.** Students with reading disabilities, low vision users, institutions with Section 508 and WCAG obligations, and anyone taking a proctored assessment who needs assistive technology that will not conflict with exam software.
-4. **The differentiation from upstream and competitors.** This is the sentence store review cares about. Say it explicitly: Lectern is a minimal, local-only, allow-list-friendly reader built for locked-down assessment environments, which is a different product from cloud-voice readers.
+4. **The differentiation from upstream and competitors.** This is the sentence store review cares about. Say it explicitly: Herald is a minimal, local-only, allow-list-friendly reader built for locked-down assessment environments, which is a different product from cloud-voice readers.
 
 Attribution line at the bottom of the long description:
 
-> Built on Read Aloud by Hai Phan, MIT licensed. Lectern is an independent project and is not affiliated with or endorsed by the original author.
+> Built on Read Aloud by Hai Phan, MIT licensed. Herald is an independent project and is not affiliated with or endorsed by the original author.
 
 That second sentence is not optional. It is the cleanest defense against the store's impersonation policy.
 
 ## Repo and identifiers
 
-- GitHub repo name: `lectern`. Not `read-aloud-fork`, which carries the name you are shedding.
+- GitHub repo name: `herald`. Not `read-aloud-fork`, which carries the name you are shedding.
 - Commit `FORK.md` recording the upstream repo, the exact fork commit SHA, and the MIT attribution.
 - Add `upstream` as a git remote pointing at `ken107/read-aloud` for cherry-picking. Never merge upstream branches wholesale.
 - GitHub defaults a fork's pull request base to the parent repo. Check the base branch on every PR or you will send Proctorio's changes to Hai Phan.

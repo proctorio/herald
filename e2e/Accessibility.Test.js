@@ -1,7 +1,7 @@
 /**
  * Axe gates for the extension pages. The phase 6 (accessibility hardening)
  * gate is active: every scanned page must report ZERO axe violations in both
- * the light and dark themes, per docs/lectern/05-accessibility-spec.md
+ * the light and dark themes, per docs/herald/05-accessibility-spec.md
  * ("Zero violations, not 'zero criticals.'"). Violation JSON attaches to the
  * report whenever a scan finds anything, so failures stay debuggable.
  * Phase 3.5's non-failing baseline recording lived here before the flip.

@@ -1,7 +1,7 @@
 # 00. Implementation Plan
 
 The comprehensive work order to take the read-aloud fork and ship it as
-Lectern. This plan binds together the build brief (02 to 07), the field
+Herald. This plan binds together the build brief (02 to 07), the field
 findings and QA plan (internal documentation vault), and a full code survey of the fork at commit
 7f2764b performed on 2026-08-12. Every code claim below was verified against
 the actual source; file:line references are to the fork commit.
@@ -59,7 +59,7 @@ this section is authoritative where they conflict.
    Google Fonts stylesheet in `popup.html:8`.
 6. `templates/` paths in `06-build-plan.md` refer to the handoff package
    layout. In this repo: `FORK.md` and `NOTICE` are at root, the privacy
-   skeleton is `docs/lectern/PRIVACY.md`.
+   skeleton is `docs/herald/PRIVACY.md`.
 7. Locale message keys are `extension_name` / `extension_description`, not
    the `extName` sketch in `03-branding-spec.md`. Keep the existing keys.
 8. No hardcoded upstream-extension-ID checks exist in runtime code. The IDs
@@ -134,9 +134,9 @@ vault, audit scripts run for baseline.
 Remaining:
 
 - `INVENTORY.md`: commit the file-by-file inventory with keep/kill/rework
-  verdicts (survey output; place at `docs/lectern/INVENTORY.md`).
+  verdicts (survey output; place at `docs/herald/INVENTORY.md`).
 - CI: add `pr.yml` (core-templates `PR/js/default.yml`, `testing: true`)
-  and `sync.yml` (mirror main to github.com/proctorio/lectern), modeled
+  and `sync.yml` (mirror main to github.com/proctorio/herald), modeled
   on hulk.js. Wire the branch policy to pr.yml.
 - GitHub: switch the fork's default branch to `main` once sync publishes
   it. Keep upstream's `master` untouched as a reference branch.
@@ -156,8 +156,8 @@ Exactly as `06-build-plan.md` Phase 1, with survey-verified targets:
 
 - `manifest.json`: delete `key` (line 19), delete the whole `oauth2` block
   (lines 20 to 27), drop `identity` from permissions.
-- `package.json`: name `lectern`, `private: true`, author Proctorio,
-  repository github.com/proctorio/lectern, delete `sync-page-scripts`.
+- `package.json`: name `herald`, `private: true`, author Proctorio,
+  repository github.com/proctorio/herald, delete `sync-page-scripts`.
 - Remove upstream identity strings: `js/report.js:25` (author's personal
   email), `README.md` store links and badges, `options.html:55` and
   `js/content/google-doc.js:170` (blog links).
@@ -212,7 +212,7 @@ Permissions and injection (Phase 3):
   (`js/events.js:294-352`, `js/defaults.js:28-31`, request sites in popup
   and options).
 - Remove `ttsEngine` (declared, never used) and `identity` (M1).
-- Keep and justify in `docs/lectern/PERMISSIONS.md`: `activeTab`,
+- Keep and justify in `docs/herald/PERMISSIONS.md`: `activeTab`,
   `contextMenus`, `offscreen`, `scripting`, `storage`, `tts`. Keep
   `webNavigation` optional (frame resolution for the Canvas handler, see
   Phase 5). Review `optional_host_permissions` scope after handler pruning.
@@ -310,15 +310,15 @@ by the integration suite before and after the ESM conversion.
 Per `03-branding-spec.md`, with survey corrections:
 
 - `manifest.json`: keep the existing `__MSG_extension_name__` key names,
-  set values via `_locales/en/messages.json` to "Lectern"; `short_name`
-  "Lectern"; version reset to `1.0.0`.
+  set values via `_locales/en/messages.json` to "Herald"; `short_name`
+  "Herald"; version reset to `1.0.0`.
 - English locale rewritten completely; delete premium, account, payment,
   phone, and report strings orphaned by M2; other locales handled per D10.
 - Icons: new original artwork at 16, 32, 48, 128 plus monochrome
   high-contrast variant and the 440x280 promo tile (open question 6 must
   be resolved by now). Delete every `img/` upstream asset and the orphaned
   jQuery-UI sprites in `css/images/`.
-- README rewritten for Lectern in the house style (hulk.js structure:
+- README rewritten for Herald in the house style (hulk.js structure:
   pitch, features, install, usage, development, contributing, author
   Proctorio; no emojis, no em-dashes, no stale static badges). Rewrite
   `introduction.md` as store-listing copy or fold it into docs.
@@ -395,11 +395,11 @@ exception to never-auto-read, documented in the internal
 field-findings doc.
 
 **F1 to F3, lockdown coexistence (High; C-029 to C-033, C-040 to C-051).**
-Lectern-side work: D9 (side panel surface, no tab or window creation
+Herald-side work: D9 (side panel surface, no tab or window creation
 anywhere in exam mode, embedded player only), keyboard-first operation
 (commands already exist; global stop moves to Phase 6), graceful
 degradation when right-click is blocked (toolbar and shortcut paths cover
-everything, C-033). Proctorio-side work (cross-team tickets, not Lectern
+everything, C-033). Proctorio-side work (cross-team tickets, not Herald
 code): allow-list exceptions for the extension popup and context menu
 under Block New Tabs, Disable Right-Click, Disable Printing; Exam Toolbar
 integration (F-002, C-030) rides on D8's `externally_connectable` channel.
@@ -441,7 +441,7 @@ As written in the brief, no changes, with two additions:
 
 - The production zip is built from `dist/`; both audit scripts run against
   the unpacked production build in CI, not just the tree.
-- The privacy policy (`docs/lectern/PRIVACY.md` skeleton) is finalized
+- The privacy policy (`docs/herald/PRIVACY.md` skeleton) is finalized
   against the shipped code; with D1 through D4 taken, the "optional
   network features" section is deleted entirely and the store data
   disclosure declares nothing collected.

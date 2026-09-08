@@ -16,7 +16,7 @@ Each phase has acceptance criteria. Do not advance on a partial pass.
 - Add the upstream git remote: `git remote add upstream https://github.com/ken107/read-aloud.git`.
 - Create a `main` branch that is your line of development. Keep the upstream default branch untouched as a reference.
 - Add a PR template that reminds the author to check the base repo, because GitHub defaults a fork's PR base to the parent.
-- Inventory the tree. Produce `docs/lectern/INVENTORY.md`: every source file, one line each, what it does, and whether it survives. This is the map for Phase 2 and it forces you to actually read the code before deleting it.
+- Inventory the tree. Produce `docs/herald/INVENTORY.md`: every source file, one line each, what it does, and whether it survives. This is the map for Phase 2 and it forces you to actually read the code before deleting it.
 
 **Acceptance**
 - `FORK.md`, `NOTICE`, `LICENSE` all present and correct.
@@ -70,7 +70,7 @@ Reference: `02-fork-delinking-plan.md` Class 3.
 **Tasks**
 - Remove `webRequest` and any `declarativeNetRequest` rules.
 - Confirm no Google Docs DOM injection variant survives.
-- Regenerate the permission set from what the code actually calls. Justify each surviving permission in a comment or in `docs/lectern/PERMISSIONS.md`.
+- Regenerate the permission set from what the code actually calls. Justify each surviving permission in a comment or in `docs/herald/PERMISSIONS.md`.
 - Convert broad host permissions to `activeTab` plus optional host permissions requested at point of use, where feasible.
 - Remove unused permissions from `manifest.json` and unused entries from `optional_permissions`.
 
@@ -91,7 +91,7 @@ Reference: `03-branding-spec.md`.
 - Handle other locales: either retranslate or mark as incomplete. Do not ship half-rebranded strings.
 - Replace every icon and image with original artwork at 16, 32, 48, 128, plus a monochrome high-contrast variant.
 - Add an About / Credits surface in the options page linking to the upstream repo and the MIT license text.
-- Update README, and any in-repo docs, to describe Lectern.
+- Update README, and any in-repo docs, to describe Herald.
 
 **Acceptance**
 - Grep for "read aloud", "readaloud", "Read Aloud" across the whole tree, case-insensitive. The only surviving hits are attribution text in `NOTICE`, `FORK.md`, `LICENSE` context, and the About surface.

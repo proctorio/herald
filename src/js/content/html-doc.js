@@ -1,8 +1,8 @@
-var lecternDoc = new function()
+var heraldDoc = new function()
 {
 	var self = this;
 
-	this.ignoreTags = "select, textarea, button, label, audio, video, dialog, embed, menu, nav, noframes, noscript, object, script, style, svg, aside, footer, #footer, .no-lectern, [aria-hidden=true]";
+	this.ignoreTags = "select, textarea, button, label, audio, video, dialog, embed, menu, nav, noframes, noscript, object, script, style, svg, aside, footer, #footer, .no-herald, [aria-hidden=true]";
 
 	this.getCurrentIndex = function()
 	{
@@ -89,7 +89,7 @@ var lecternDoc = new function()
 		}
 
 		// collect the elements to be read. No marker class is added: extraction
-		// must leave the page DOM exactly as it found it (docs/lectern/04).
+		// must leave the page DOM exactly as it found it (docs/herald/04).
 		var toRead = [];
 		for (var i = 0; i < textBlocks.length; i++)
 		{
@@ -213,7 +213,7 @@ var lecternDoc = new function()
 		}
 		finally
 		{
-			for (const surrogate of elem.querySelectorAll(".lectern-numbering, .lectern-alt")) surrogate.remove();
+			for (const surrogate of elem.querySelectorAll(".herald-numbering, .herald-alt")) surrogate.remove();
 			for (const entry of hidden) restoreDisplay(entry);
 		}
 	}
@@ -236,7 +236,7 @@ var lecternDoc = new function()
 		if (alt)
 		{
 			var span = document.createElement("span");
-			span.className = "lectern-alt";
+			span.className = "herald-alt";
 			span.textContent = " " + alt + " ";
 			img.after(span);
 		}
@@ -245,7 +245,7 @@ var lecternDoc = new function()
 	function makeNumberingSpan(number)
 	{
 		var span = document.createElement("span");
-		span.className = "lectern-numbering";
+		span.className = "herald-numbering";
 		span.textContent = number + ". ";
 
 		return span;
@@ -273,7 +273,7 @@ var lecternDoc = new function()
 				// nested choice fieldsets: a label already numbered by an outer
 				// fieldset pass is skipped, so numbering never double-applies
 				return isChoiceLabel(label) && isVisible(label) &&
-					!label.querySelector(":scope > .lectern-numbering");
+					!label.querySelector(":scope > .herald-numbering");
 			})
 			.forEach(function(label, index)
 			{

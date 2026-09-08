@@ -1,10 +1,10 @@
-var rad = lecternDoc;
+var rad = heraldDoc;
 var prevBtn = document.getElementById("control_previous_page");
 var nextBtn = document.getElementById("control_next_page");
 var contentFrame = document.getElementById("section_iframe");
 var currentIndex = 0;
 
-lecternDoc = {
+heraldDoc = {
 	getCurrentIndex: function()
 	{
 		return currentIndex = 0;

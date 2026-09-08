@@ -1,4 +1,4 @@
-var lecternDoc = new function()
+var heraldDoc = new function()
 {
 	var viewport = document.querySelector(".drive-viewer-paginated-scrollable");
 	var pages = Array.from(document.querySelectorAll(".drive-viewer-paginated-page"));

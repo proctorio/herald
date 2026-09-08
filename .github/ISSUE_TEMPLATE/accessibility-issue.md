@@ -1,6 +1,6 @@
 ---
 name: Accessibility issue
-about: A barrier using Lectern with assistive technology, keyboard, zoom, or high contrast
+about: A barrier using Herald with assistive technology, keyboard, zoom, or high contrast
 title: "[a11y] "
 labels: accessibility
 ---
@@ -22,6 +22,6 @@ shortcuts)
 
 **Environment**
 
-- Lectern version (options page footer):
+- Herald version (options page footer):
 - Chrome version:
 - Operating system:

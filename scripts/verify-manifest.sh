@@ -57,7 +57,7 @@ else:
 
 if "oauth2" in m:
     fail("manifest contains an 'oauth2' block. The upstream client_id belongs to "
-         "the upstream author. Delete the whole block. Lectern has no sign-in.")
+         "the upstream author. Delete the whole block. Herald has no sign-in.")
 else:
     ok("no 'oauth2' block")
 
@@ -85,7 +85,7 @@ else:
 version = str(m.get("version", ""))
 if version.startswith("2."):
     warn(f"version {version} looks inherited from the upstream 2.x line. "
-         "Reset to 1.0.0 for the first Lectern release.")
+         "Reset to 1.0.0 for the first Herald release.")
 elif version:
     ok(f"version {version}")
 
@@ -104,8 +104,8 @@ FORBIDDEN = {
     "webRequestBlocking": "MV2 only and forbidden here",
     "declarativeNetRequest": "no network rules should ship",
     "declarativeNetRequestWithHostAccess": "no network rules should ship",
-    "identity": "no sign-in in Lectern",
-    "identity.email": "no sign-in in Lectern",
+    "identity": "no sign-in in Herald",
+    "identity.email": "no sign-in in Herald",
     "history": "not needed, and a red flag in exam contexts",
     "cookies": "not needed",
     "management": "not needed, and reads as extension surveillance",
@@ -141,7 +141,7 @@ if "activeTab" in perms:
 for p in perms:
     if p not in FORBIDDEN:
         warn(f"permission {p!r} present. Confirm a live code path uses it and "
-             "that it is justified in docs/lectern/PERMISSIONS.md.")
+             "that it is justified in docs/herald/PERMISSIONS.md.")
 
 # ----------------------------------------------------- content script shape
 
@@ -177,7 +177,7 @@ def section(title, items, prefix):
         for it in items:
             print(f"{prefix} {it}")
 
-print("Lectern manifest verification")
+print("Herald manifest verification")
 print(f"target: {path}")
 
 section("PASS", oks, "  ok:")

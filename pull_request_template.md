@@ -2,7 +2,7 @@
 
 ## Phase
 
-Which build-plan phase does this PR belong to (see docs/lectern/06-build-plan.md)?
+Which build-plan phase does this PR belong to (see docs/herald/06-build-plan.md)?
 
 ## What changed
 

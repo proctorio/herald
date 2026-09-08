@@ -1,5 +1,5 @@
 /**
- * Builds the Chrome Web Store artifact: build/lectern-<version>.zip, the
+ * Builds the Chrome Web Store artifact: build/herald-<version>.zip, the
  * production package (clean icons, clean name), from a fresh prod-channel
  * build of dist/ so the working dist state (a dev-stamped local build by
  * default) can never leak into it. Portable across the Windows dev machines
@@ -19,23 +19,26 @@ mkdirSync("build", { recursive: true });
 
 execFileSync(process.execPath, ["tools/build.js"], {
 	stdio: "inherit",
-	env: { ...process.env, LECTERN_CHANNEL: "prod" }
+	env: { ...process.env, HERALD_CHANNEL: "prod" }
 });
 
 // Belt and braces: the store artifact must carry the clean art, never the
 // dev-stamped manifest icons a local tree wears.
-for (const size of [16, 32, 48, 128])
+for (const name of ["icon", "action"])
 {
-	const packaged = readFileSync(`dist/img/icon-${size}.png`);
-	const clean = readFileSync(`src/img/prod/icon-${size}.png`);
-	if (!packaged.equals(clean))
+	for (const size of [16, 32, 48, 128])
 	{
-		throw new Error(`dist/img/icon-${size}.png does not match the clean store art; refusing to package.`);
+		const packaged = readFileSync(`dist/img/${name}-${size}.png`);
+		const clean = readFileSync(`src/img/prod/${name}-${size}.png`);
+		if (!packaged.equals(clean))
+		{
+			throw new Error(`dist/img/${name}-${size}.png does not match the clean store art; refusing to package.`);
+		}
 	}
 }
 
 const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf-8"));
-const artifact = `build/lectern-${manifest.version}.zip`;
+const artifact = `build/herald-${manifest.version}.zip`;
 
 const zip = new AdmZip();
 zip.addLocalFolder("dist", "", entry => !entry.endsWith(".map"));

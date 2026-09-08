@@ -42,7 +42,7 @@ The upstream S3 page-script mechanism is the specific hazard. See `02-fork-delin
 - [ ] Single purpose clearly expressed and narrow
 
 **Listing**
-- [ ] Title: `Lectern, Text to Speech Reader`. No keyword stuffing, no "Proctorio" in the title.
+- [ ] Title: `Herald, Text to Speech Reader`. No keyword stuffing, no "Proctorio" in the title.
 - [ ] Short description leads with the local-only privacy claim
 - [ ] Long description covers: what it does, privacy claim, who it is for, explicit differentiation
 - [ ] Non-affiliation and MIT attribution line present

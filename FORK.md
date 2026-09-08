@@ -2,6 +2,11 @@
 
 Operational record. Not a legal requirement, but keep it current.
 
+> Renamed 2026-09-08: the product previously shipped as "Lectern: Text to
+> Speech Reader" (v1.0.0 through v1.0.4). Everything is now Herald. The
+> Chrome Web Store extension id is unchanged (ids are permanent); versions
+> up to 1.0.4 were published under the Lectern name.
+
 ## Upstream
 
 | Field | Value |
@@ -18,8 +23,8 @@ Operational record. Not a legal requirement, but keep it current.
 
 | Field | Value |
 |---|---|
-| Product name | Lectern |
-| Repository | https://github.com/proctorio/lectern |
+| Product name | Herald |
+| Repository | https://github.com/proctorio/herald |
 | Publisher | Proctor.io Incorporated, 7340 E Main St, Scottsdale, AZ |
 | Chrome Web Store ID (Beta channel) | jnchlbdjpliafjnppcmhfjogpajfejjl. Never change this. |
 | Chrome Web Store ID (Production channel) | FILL IN when the production application is approved. Never change this. |
@@ -29,7 +34,7 @@ Operational record. Not a legal requirement, but keep it current.
 
 - `upstream` is configured as a git remote for cherry-picking.
 - Cherry-pick security and correctness fixes only.
-- Never merge upstream branches wholesale. Upstream carries server dependencies that were deliberately removed (see docs/lectern/02-fork-delinking-plan.md).
+- Never merge upstream branches wholesale. Upstream carries server dependencies that were deliberately removed (see docs/herald/02-fork-delinking-plan.md).
 - GitHub defaults a fork's pull request base to the parent repository. Verify the base on every PR.
 
 ## Removed from upstream
@@ -71,4 +76,4 @@ all of them. Do not change it. Do not republish under a new listing.
 
 | Date | ID | Note |
 |---|---|---|
-| 2026-08-18 | jnchlbdjpliafjnppcmhfjogpajfejjl | Initial publish, approved and public. Designated the BETA channel: its uploads carry the "Lectern Beta" name once the release pipeline runs; the clean name is reserved for the production listing (separate application, ID pending). |
+| 2026-08-18 | jnchlbdjpliafjnppcmhfjogpajfejjl | Initial publish, approved and public. Designated the BETA channel: its uploads carry the "Herald Beta" name once the release pipeline runs; the clean name is reserved for the production listing (separate application, ID pending). |

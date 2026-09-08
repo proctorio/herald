@@ -1,3 +1,3 @@
 // includes html-doc.js
 
-lecternDoc.ignoreTags = lecternDoc.ignoreTags.replace(", button,", ",");
+heraldDoc.ignoreTags = heraldDoc.ignoreTags.replace(", button,", ",");

@@ -1,6 +1,6 @@
 /**
  * Regression gate for the exam extraction blockers (findings F4 and F5 in
- * docs/lectern/00-implementation-plan.md, milestone M5): radio answer labels
+ * docs/herald/00-implementation-plan.md, milestone M5): radio answer labels
  * must be read with option numbering, image alt text must be spoken through
  * temporary surrogate spans, screen-reader-only choice legends must not leak
  * into the read text, and extraction must leave the page DOM untouched.
@@ -152,8 +152,8 @@ test.describe("quiz extraction", () =>
 		const after = await quiz.evaluate(() =>
 			({
 				elementCount: document.querySelectorAll("main *").length,
-				surrogates: document.querySelectorAll(".lectern-alt, .lectern-numbering").length,
-				markedElements: document.querySelectorAll("main [class*='lectern']").length,
+				surrogates: document.querySelectorAll(".herald-alt, .herald-numbering").length,
+				markedElements: document.querySelectorAll("main [class*='herald']").length,
 				legendText: document.querySelector("fieldset legend").textContent.trim(),
 				radioCount: document.querySelectorAll("input[type='radio']").length,
 				extensionFrames: document.querySelectorAll("iframe[src^='chrome-extension://']").length

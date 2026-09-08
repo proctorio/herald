@@ -45,7 +45,7 @@ jobs:
       - name: Audit the unpacked store artifact
         run: |
           ver="${GITHUB_REF_NAME#release/}"
-          unzip -q "build/lectern-${ver}.zip" -d build/unpacked
+          unzip -q "build/herald-${ver}.zip" -d build/unpacked
           bash scripts/audit-remote-code.sh build/unpacked
           bash scripts/verify-manifest.sh build/unpacked/manifest.json
       - name: GitHub release
@@ -53,4 +53,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ver="${GITHUB_REF_NAME#release/}"
-          gh release create "$GITHUB_REF_NAME" "build/lectern-${ver}.zip" --title "v${ver}" --generate-notes || echo "release already exists"
+          gh release create "$GITHUB_REF_NAME" "build/herald-${ver}.zip" --title "v${ver}" --generate-notes || echo "release already exists"

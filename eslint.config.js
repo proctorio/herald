@@ -8,7 +8,7 @@ export default [
 	{
 		// Extension source keeps upstream-adjacent kebab-case filenames so the
 		// fork's divergence from the upstream repository (see FORK.md) stays navigable (decision
-		// D11 in docs/lectern/00-implementation-plan.md). Tests and tooling
+		// D11 in docs/herald/00-implementation-plan.md). Tests and tooling
 		// follow the house PascalCase rule from the base config.
 		files: ["src/js/**/*.js", "tools/**/*.js"],
 		rules: {
@@ -27,7 +27,7 @@ export default [
 		files: ["src/js/**/*.js"],
 		languageOptions: {
 			globals: {
-				"lecternDoc": "readonly"
+				"heraldDoc": "readonly"
 			}
 		},
 		rules: {
@@ -110,12 +110,12 @@ export default [
 		// Classic per-site content handlers: injected as plain scripts after
 		// the content-base bundle, they intentionally consume the documented
 		// global surface (see src/js/content-entries/content-base.js) and the
-		// lecternDoc protocol. Not modules. They share the house formatting
+		// heraldDoc protocol. Not modules. They share the house formatting
 		// (decision D12); upstream cherry-picks onto them are three-way merges,
 		// not clean applies, which the divergence policy already accepts.
 		files: ["src/js/content/**/*.js"],
 		rules: {
-			// The lecternDoc protocol IS an implicit global handoff between
+			// The heraldDoc protocol IS an implicit global handoff between
 			// separately injected classic scripts. Some handlers deliberately
 			// redeclare or wrap a previously injected handler's global.
 			"no-implicit-globals": "off",
@@ -125,7 +125,7 @@ export default [
 		languageOptions: {
 			sourceType: "script",
 			globals: {
-				"lecternDoc": "writable",
+				"heraldDoc": "writable",
 				"googleDocsUtil": "writable",
 				"getInnerText": "readonly",
 				"isNotEmpty": "readonly",

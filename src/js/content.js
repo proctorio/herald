@@ -70,7 +70,7 @@ import { registerMessageListener } from "./messaging.js";
 	async function getCurrentIndex() 
 	{
 		if (await getSelectedText()) return -100;
-		else return lecternDoc.getCurrentIndex();
+		else return heraldDoc.getCurrentIndex();
 	}
 
 	async function getTexts(index, quietly) 
@@ -82,7 +82,7 @@ import { registerMessageListener } from "./messaging.js";
 		}
 		else 
 		{
-			return Promise.resolve(lecternDoc.getTexts(index, quietly))
+			return Promise.resolve(heraldDoc.getTexts(index, quietly))
 				.then(function(texts) 
 				{
 					if (texts && Array.isArray(texts)) 
@@ -97,7 +97,7 @@ import { registerMessageListener } from "./messaging.js";
 
 	function getSelectedText() 
 	{
-		if (lecternDoc.getSelectedText) return lecternDoc.getSelectedText();
+		if (heraldDoc.getSelectedText) return heraldDoc.getSelectedText();
 		
 		return window.getSelection().toString().trim();
 	}

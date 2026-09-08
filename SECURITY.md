@@ -1,13 +1,13 @@
 # Security Policy
 
-Lectern's security posture is its absence of surface: the extension's own
+Herald's security posture is its absence of surface: the extension's own
 code makes no network requests, collects nothing, and stores only local
 preferences. Reports that challenge those guarantees get priority attention.
 
 ## Reporting a vulnerability
 
 Use GitHub's
-[private vulnerability reporting](https://github.com/proctorio/lectern/security/advisories/new)
+[private vulnerability reporting](https://github.com/proctorio/herald/security/advisories/new)
 on this repository. Please do not open a public issue for anything you
 believe is exploitable.
 
@@ -28,7 +28,7 @@ Especially interesting:
 
 Out of scope: transmissions performed by the browser itself when a user
 selects a browser-provided network voice (documented in the privacy policy),
-and issues in upstream Read Aloud that do not exist in Lectern's code.
+and issues in upstream Read Aloud that do not exist in Herald's code.
 
 ## Supported versions
 

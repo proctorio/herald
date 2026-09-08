@@ -15,7 +15,7 @@ labels: bug
 
 **Environment**
 
-- Lectern version (options page footer):
+- Herald version (options page footer):
 - Chrome version:
 - Operating system:
 - Page or site where it happened (if shareable):

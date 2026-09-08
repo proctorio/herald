@@ -418,7 +418,7 @@ describe("browser info helpers", () =>
 			config.browserId = "opera";
 			expect(getHotkeySettingsUrl()).toBe("opera://settings/configureCommands");
 			config.browserId = "firefox";
-			expect(getHotkeySettingsUrl()).toBe("chrome-extension://lectern-test/shortcuts.html");
+			expect(getHotkeySettingsUrl()).toBe("chrome-extension://herald-test/shortcuts.html");
 		}
 		finally
 		{
@@ -942,7 +942,7 @@ describe("silence track", () =>
 		{
 			const track = makeSilenceTrack();
 			const audio = instances[0];
-			expect(audio.src).toBe("chrome-extension://lectern-test/sound/silence.mp3");
+			expect(audio.src).toBe("chrome-extension://herald-test/sound/silence.mp3");
 			expect(audio.loop).toBe(true);
 
 			track.start();

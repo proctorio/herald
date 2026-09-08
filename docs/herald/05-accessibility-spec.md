@@ -4,11 +4,11 @@ This is the product, not a compliance checkbox. A text to speech extension with 
 
 ## Target
 
-WCAG 2.2 Level AA for all extension-owned UI (popup, options page, any injected control surface). Section 508 conformance documented in a VPAT. Proctorio has an existing Deque Systems relationship for annual VPATs, so route Lectern's audit through the same engagement rather than standing up a new one.
+WCAG 2.2 Level AA for all extension-owned UI (popup, options page, any injected control surface). Section 508 conformance documented in a VPAT. Proctorio has an existing Deque Systems relationship for annual VPATs, so route Herald's audit through the same engagement rather than standing up a new one.
 
 ## The hard problem: coexisting with screen readers
 
-The failure mode nobody tests for is double-speech. A blind user running JAWS or NVDA already has a reader. Lectern must not compete with it.
+The failure mode nobody tests for is double-speech. A blind user running JAWS or NVDA already has a reader. Herald must not compete with it.
 
 Rules:
 
@@ -19,7 +19,7 @@ Rules:
    (decision D15), runs only after a user-invoked read injected the content
    script, and announces exam-critical interrupt overlays that a student
    must not miss. It never reads page content.
-2. **Do not narrate your own UI through the TTS engine.** Extension UI is announced by the user's screen reader through normal accessible markup. Lectern's synthesized voice is for page content only.
+2. **Do not narrate your own UI through the TTS engine.** Extension UI is announced by the user's screen reader through normal accessible markup. Herald's synthesized voice is for page content only.
 3. **Status changes use a single polite live region.** One `aria-live="polite"` region for playback state. Do not use `assertive` for anything short of an error. Do not add a second live region.
 4. **Pause on screen reader interruption is not detectable, so give the user a fast out.** A global keyboard shortcut that stops speech immediately, working regardless of focus location.
 5. **Do not steal focus.** Invoking a read must not move focus. When a read completes, focus stays where the user left it.

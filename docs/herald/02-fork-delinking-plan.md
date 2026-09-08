@@ -25,7 +25,7 @@ VERIFIED: upstream `manifest.json` contains an `"oauth2"` block with the author'
 
 That client belongs to Hai Phan. It is bound to his extension ID and his Google Cloud project. It will not work for you, and attempting to use it is a mess you do not want.
 
-**Action: delete the entire `oauth2` block.** Lectern has no sign-in. There is no replacement client_id. If someone later argues for adding auth, that is a new design decision, not a port.
+**Action: delete the entire `oauth2` block.** Herald has no sign-in. There is no replacement client_id. If someone later argues for adding auth, that is a new design decision, not a port.
 
 ### 1.3 Anything else keyed to upstream identity
 
@@ -58,7 +58,7 @@ Chrome's own guidance for the remote-code rejection ("Blue Argon") is to search 
 
 ### 2.3 Support, feedback, and telemetry endpoints
 
-VERIFY IN REPO: in-app "report issue" and contact paths point at `lsdsoftware.com` and `readaloud.app`. Repoint to Proctorio support or remove. Any analytics, error reporting, or version-check ping gets removed outright. Lectern makes zero outbound requests in default mode. That is a product commitment, not a nice-to-have.
+VERIFY IN REPO: in-app "report issue" and contact paths point at `lsdsoftware.com` and `readaloud.app`. Repoint to Proctorio support or remove. Any analytics, error reporting, or version-check ping gets removed outright. Herald makes zero outbound requests in default mode. That is a product commitment, not a nice-to-have.
 
 ## Class 3: Permission and injection surface inherited by default
 

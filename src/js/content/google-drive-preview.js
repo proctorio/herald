@@ -1,4 +1,4 @@
-var lecternDoc = new function()
+var heraldDoc = new function()
 {
 	var viewport, pages;
 

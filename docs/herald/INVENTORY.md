@@ -15,7 +15,7 @@ Thesis applied for verdicts: **local-first minimal reader, no server, no premium
 | `.gitignore` | Standard Node gitignore (logs, node_modules, build/dist) | KEEP | Neutral dev hygiene |
 | `LICENSE` | MIT, Copyright (c) 2016 Hai Phan | KEEP | Required to retain for the fork |
 | `README.md` | Upstream Read Aloud README: store links, ken107 badges, donation/premium mentions | REWORK | De-link from upstream brand, stores, blog |
-| `introduction.md` | Store-listing marketing copy; advertises Polly/Wavenet paid voices, in-app purchase (introduction.md:20) | REWORK | Rewrite for Lectern; premium copy must go |
+| `introduction.md` | Store-listing marketing copy; advertises Polly/Wavenet paid voices, in-app purchase (introduction.md:20) | REWORK | Rewrite for Herald; premium copy must go |
 | `manifest.json` | MV3 manifest: action popup, SW `background.js`, tts/ttsEngine perms, commands; also upstream CWS `key` (line 19), Google `oauth2` client for account login (lines 20-27), `identity` permission (line 31) | REWORK | Core skeleton keeps; strip `key`, `oauth2`, `identity`, translate.google.com host perm; rebrand `__MSG__` names |
 | `package.json` | npm metadata + `package` zip script + `sync-page-scripts` that rsyncs to author's S3 bucket (line 10) | REWORK | Keep package script; delete S3 sync; rename/re-author |
 | `package-lock.json` | Empty lockfile, zero runtime deps | KEEP | Confirms no-npm-deps build; regenerate on rename |
@@ -91,7 +91,7 @@ Thesis applied for verdicts: **local-first minimal reader, no server, no premium
 
 | Path | What it does | Verdict | Reason |
 |---|---|---|---|
-| `js/page/google-doc.js` | One line: sets `window._docs_annotate_canvas_by_ext = "<upstream extension ID>"` to force Docs SVG-annotated canvas | REWORK | Mechanism needed for Docs; ID must become Lectern's own |
+| `js/page/google-doc.js` | One line: sets `window._docs_annotate_canvas_by_ext = "<upstream extension ID>"` to force Docs SVG-annotated canvas | REWORK | Mechanism needed for Docs; ID must become Herald's own |
 | `page-scripts/google-doc.js` | S3-hosted copy: extracts `DOCS_modelChunk` text, postMessage back | KILL | Remote-code distribution dir (synced to author's S3 per package.json:10); logic duplicated in js/content/google-doc.js `altGetTexts` |
 | `page-scripts/google-translate.js` | Page script for translate.google.com; loads messaging.js from `assets.lsdsoftware.com` and jQuery/jQuery-UI from Google CDN (lines 6, 29-31) | KILL | Remote code loading remote code; legacy GT path |
 | `page-scripts/messaging.js` | Copy of the messaging lib for S3 hosting | KILL | Same reason; canonical copy lives at js/messaging.js |
@@ -107,7 +107,7 @@ Thesis applied for verdicts: **local-first minimal reader, no server, no premium
 | `css/popup.css` | Popup/player styles incl. highlight box | KEEP | Core UI |
 | `css/material-icons.woff2` | Material Icons font subset (Apache-2.0) | VENDORED-LIB | Popup/options buttons use it, KEEP |
 | `css/images/ui-*.png` (13 files) | jQuery-UI "smoothness/le-frog"-era theme sprites | KILL | Orphaned, zero references anywhere in repo (grep for `css/images`/`ui-icons`: no matches) |
-| `img/icon.png`, `img/icon-16.png`, `img/icon-48.png` | Read Aloud brand icons (manifest icons) | REWORK | Must be replaced with Lectern branding |
+| `img/icon.png`, `img/icon-16.png`, `img/icon-48.png` | Read Aloud brand icons (manifest icons) | REWORK | Must be replaced with Herald branding |
 | `img/loading.gif` | Popup loading spinner | KEEP | Local UI asset |
 | `sound/silence.mp3` | Looped silence track used by `makeSilenceTrack` (defaults.js:856) for the Bluetooth silence-gap fix / keepalive | KEEP | Local playback quality feature |
 
@@ -120,17 +120,17 @@ All are UI-string catalogs keyed off `_locales/en/messages.json` (name/descripti
 | `en` | REWORK | Canonical catalog: rebrand `extension_name`/`description`, delete premium/account/payment strings |
 | `ar`, `cs`, `da`, `de`, `es`, `fi`, `fr`, `hi`, `id`, `it`, `ja`, `ko`, `nl`, `no`, `pl`, `pt_BR`, `ru`, `sv`, `tg`, `th`, `tr`, `uk`, `vi`, `zh_CN`, `zh_TW` (25 locales) | REWORK | Regenerate from reworked en (tools/i18n.js flow); machine-translated upstream |
 
-## docs/ (upstream readaloud.app website, grouped; excludes docs/lectern per instructions)
+## docs/ (upstream readaloud.app website, grouped; excludes docs/herald per instructions)
 
 | Group | What it does | Verdict | Reason |
 |---|---|---|---|
-| `docs/index.html`, `contact.html`, `privacy.html`, `tos.html`, `36a213dec58f9ae20b81cd14.html`, `CNAME` | Upstream marketing site: Google Analytics (index.html:9), redirect to lsdsoftware.com contact, upstream ToS/privacy, empty search-console verification stub, `CNAME → readaloud.app` | KILL | Upstream website/brand; Lectern has no server/site to publish from this repo |
+| `docs/index.html`, `contact.html`, `privacy.html`, `tos.html`, `36a213dec58f9ae20b81cd14.html`, `CNAME` | Upstream marketing site: Google Analytics (index.html:9), redirect to lsdsoftware.com contact, upstream ToS/privacy, empty search-console verification stub, `CNAME → readaloud.app` | KILL | Upstream website/brand; Herald has no server/site to publish from this repo |
 | `docs/login.html`, `docs/logout.html` | OAuth relay pages against `auth.readaloud.app` Cognito + `support.readaloud.app` token exchange (login.html:11-16) | KILL | Account system |
 | `docs/premium-voices.html`, `docs/css/premium-voices.css`, `docs/js/premium-voices.js`, `docs/js/utils.js` | Premium voice purchase page: live **Stripe** key (premium-voices.js:18), account balance, remote `databind.js` | KILL | Premium/payments |
 | `docs/phone.html` | Phone-companion TTS web app: CDN Bootstrap 5.3, jQuery slim, **peerjs 1.4.7 from unpkg**, `databind.js` from assets.lsdsoftware.com | KILL | Phone/PeerJS feature |
 | `docs/css/main.css`, `docs/images/*` (18 files) | Website styles and art (logo-text, demos, marquee, play/pause button art, octocat) | KILL | Upstream branding/site assets |
 | `docs/release/chrome/latest.crx` | Packaged upstream CRX v3 binary (456 KB) | KILL | Upstream signed release artifact; must not ship in fork |
-| `docs/usage/basics.md` | Extension basic-usage guide | REWORK | Usable seed for Lectern docs after rebrand |
+| `docs/usage/basics.md` | Extension basic-usage guide | REWORK | Usable seed for Herald docs after rebrand |
 | `docs/usage/premium-voices.md` | Guide for buying/enabling premium voices | KILL | Premium |
 
 ## tools/
@@ -156,8 +156,8 @@ Remote-loaded third-party code (not vendored, all must die or be vendored): jQue
 
 ## COUNTS
 
-- Tracked files in repo at survey end: **175** (git ls-files; docs/lectern grew from 9 to 16 files while this survey ran, those are ignored planning docs)
-- Excluded per instructions: docs/lectern (16), scripts/ (2), CLAUDE.md, FORK.md, NOTICE (3) = 21
+- Tracked files in repo at survey end: **175** (git ls-files; docs/herald grew from 9 to 16 files while this survey ran, those are ignored planning docs)
+- Excluded per instructions: docs/herald (16), scripts/ (2), CLAUDE.md, FORK.md, NOTICE (3) = 21
 - **Inventoried: 154 files**, root 19, js/ 46 (23 top-level + 22 content + 1 page), page-scripts/ 3, css/ 19, img/ 4, sound/ 1, _locales/ 26, docs/ (upstream site) 35, tools/ 1
 
 10 largest files (bytes, excluding .git):

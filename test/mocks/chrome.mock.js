@@ -93,7 +93,7 @@ export function makeChrome()
 		},
 
 		runtime: {
-			id: "lectern-test",
+			id: "herald-test",
 
 			/**
 			 * @description Returns the extension manifest fixture.
@@ -103,7 +103,7 @@ export function makeChrome()
 			getManifest()
 			{
 				return { version: "0.0.0",
-													name: "Lectern Test" };
+													name: "Herald Test" };
 			},
 
 			/**
@@ -114,7 +114,7 @@ export function makeChrome()
 			 */
 			getURL(path)
 			{
-				return "chrome-extension://lectern-test/" + path;
+				return "chrome-extension://herald-test/" + path;
 			},
 
 			/**
@@ -128,7 +128,7 @@ export function makeChrome()
 			 */
 			sendMessage(message, respond)
 			{
-				const promise = dispatch(message, { id: "lectern-test" });
+				const promise = dispatch(message, { id: "herald-test" });
 				if (respond)
 				{
 					promise.then(result => respond(result)).catch(() => null);

@@ -1,4 +1,4 @@
-# Contributing to Lectern
+# Contributing to Herald
 
 Thanks for helping make reading the web aloud better, especially for people
 who rely on it.

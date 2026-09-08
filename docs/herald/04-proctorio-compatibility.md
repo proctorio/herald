@@ -6,13 +6,13 @@ Proctoring software closes or blocks incompatible extensions when an assessment 
 
 Proctorio already supports OS-level and browser screen readers: VoiceOver, ChromeVox, JAWS, NVDA, and Kurzweil 3000 / Read the Web as browser extensions. VERIFIED from Proctorio's public accessibility page, which also documents annual VPATs with Deque Systems since 2019 affirming Revised Section 508 compliance.
 
-The gap is a general-purpose page reader that behaves well enough under exam conditions to be allow-listed with confidence. That is Lectern.
+The gap is a general-purpose page reader that behaves well enough under exam conditions to be allow-listed with confidence. That is Herald.
 
 ## Design constraints, in priority order
 
 ### 1. Deterministic, minimal injection
 
-Exam integrity heuristics react to extensions that mutate the DOM broadly, inject at document_start, or rewrite network traffic. Lectern must be boring.
+Exam integrity heuristics react to extensions that mutate the DOM broadly, inject at document_start, or rewrite network traffic. Herald must be boring.
 
 - Content script runs at `document_idle`, not `document_start`.
 - Injects nothing into the page DOM until the user explicitly invokes a read action. No always-on overlay, no persistent floating panel injected on page load.
@@ -34,13 +34,13 @@ Behavior in exam-safe mode:
 - No persistence of read content. Nothing written to `chrome.storage` beyond voice and rate preferences.
 - No reading of content outside the active tab.
 
-DESIGN DECISION NEEDED: whether Proctorio's extension signals exam start to Lectern, and if so by what mechanism (`externally_connectable` messaging, a documented custom event, or nothing at all and the user toggles it manually). This is a cross-team decision, not a Claude Code decision. See `08-open-questions.md`.
+DESIGN DECISION NEEDED: whether Proctorio's extension signals exam start to Herald, and if so by what mechanism (`externally_connectable` messaging, a documented custom event, or nothing at all and the user toggles it manually). This is a cross-team decision, not a Claude Code decision. See `08-open-questions.md`.
 
 Default to the manual toggle. It ships without cross-team dependency and it can be upgraded later.
 
 ### 4. No capability that could be mistaken for cheating assistance
 
-This is the reason a proctoring vendor shipping a reader gets scrutinized. Lectern reads what is already on screen. It must not:
+This is the reason a proctoring vendor shipping a reader gets scrutinized. Herald reads what is already on screen. It must not:
 - Summarize, define, translate, or explain content.
 - Fetch anything about the content.
 - Persist or export read text.
@@ -62,7 +62,7 @@ Test inside a live Proctorio exam session, not a mock. Verify for each:
 
 - Extension survives exam start without being closed.
 - Reading works during the exam.
-- No integrity warnings or flags raised in the proctoring report attributable to Lectern.
+- No integrity warnings or flags raised in the proctoring report attributable to Herald.
 - Extension state survives a tab reload mid-exam.
 - Stopping and restarting a read leaves no residual DOM.
 - Behavior with the screen reader also active (see `05-accessibility-spec.md`).

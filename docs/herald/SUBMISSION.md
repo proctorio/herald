@@ -8,7 +8,7 @@ time, and what manual QA covers before or alongside review.
 
 | Item | Status |
 |---|---|
-| Production artifact | `build/lectern-<version>.zip` (production: clean icons and name) built by `npm run package`; the beta channel package is assembled by the internal release pipeline |
+| Production artifact | `build/herald-<version>.zip` (production: clean icons and name) built by `npm run package`; the beta channel package is assembled by the internal release pipeline |
 | Audit scripts clean against the UNPACKED ZIP, not just the tree | PASS (the packaging gate also fixed a hole where dist audits scanned nothing; a canary test now proves the gate is live) |
 | No `key`, no `oauth2`, MV3, version 1.0.0 | PASS (`verify-manifest.sh`: 0 blocking) |
 | Five install permissions, no install-time host permissions, every permission justified | PASS (`PERMISSIONS.md`) |
@@ -22,23 +22,23 @@ time, and what manual QA covers before or alongside review.
 
 ## Submitter lane (Mike, at upload time)
 
-1. Developer dashboard: upload `build/lectern-1.0.0.zip` under the Proctorio
+1. Developer dashboard: upload `build/herald-1.0.0.zip` under the Proctorio
    Inc. verified publisher account.
-2. Listing fields from `introduction.md`: title `Lectern, Text to Speech
+2. Listing fields from `introduction.md`: title `Herald, Text to Speech
    Reader` (no Proctorio in the title), short and long descriptions verbatim,
    category Accessibility. The attribution and non-affiliation line at the
    bottom of the long description is required, not optional.
 3. Screenshots: at least 3 (popup during a read with highlighting, options
    page, a page being read). Produce fresh; never reuse upstream imagery.
-   Promo tile: a draft exists at `docs/lectern/promo-tile-440x280-draft.png`;
+   Promo tile: a draft exists at `docs/herald/promo-tile-440x280-draft.png`;
    replace with commissioned art if available (open question 6).
-4. Privacy tab: policy text lives at `docs/lectern/PRIVACY.md` and is hosted
+4. Privacy tab: policy text lives at `docs/herald/PRIVACY.md` and is hosted
    by the public GitHub repository; link
-   `https://github.com/proctorio/lectern/blob/main/docs/lectern/PRIVACY.md`.
+   `https://github.com/proctorio/herald/blob/main/docs/herald/PRIVACY.md`.
    Data disclosures: collects NOTHING; single purpose: reads page text
    aloud. The disclosures must match the manifest, and they do.
-5. Homepage URL: `https://github.com/proctorio/lectern`. Support URL:
-   `https://github.com/proctorio/lectern/issues` (DECIDED: the GitHub
+5. Homepage URL: `https://github.com/proctorio/herald`. Support URL:
+   `https://github.com/proctorio/herald/issues` (DECIDED: the GitHub
    repository is the community front door for contact, issues, discussions,
    and pull requests; issues reach maintainers, and the accessibility issue
    template is the distinct accessibility path).

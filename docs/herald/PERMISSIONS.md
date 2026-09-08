@@ -31,7 +31,7 @@ same commit as any manifest permission change.
 - `webRequest`, `declarativeNetRequest`: removed in phase 2. No network
   observation or interference of any kind.
 - `identity`: removed in phase 1. No sign-in.
-- `ttsEngine`: removed in phase 2. Lectern consumes voices, it does not
+- `ttsEngine`: removed in phase 2. Herald consumes voices, it does not
   provide them.
 - `offscreen`: removed in phase 3.5. It existed for URL-audio playback
   from the cloud voice engines; with those gone in phase 2, chrome.tts and

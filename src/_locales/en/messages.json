@@ -1,9 +1,9 @@
 {
   "extension_name": {
-    "message": "Lectern: Text to Speech Reader"
+    "message": "Herald: Text to Speech Reader"
   },
   "extension_short_name": {
-    "message": "Lectern"
+    "message": "Herald"
   },
   "extension_description": {
     "message": "Reads web pages aloud using your device's built-in voices. No account, no cloud, no data leaves your browser."
@@ -149,16 +149,16 @@
     "message": "Language not supported '{lang}'"
   },
   "error_page_unreadable": {
-    "message": "Lectern cannot read this website"
+    "message": "Herald cannot read this website"
   },
   "error_exam_safe_tab": {
-    "message": "Exam mode is on. Lectern reads only the active tab."
+    "message": "Exam mode is on. Herald reads only the active tab."
   },
   "error_file_access": {
-    "message": "You need to grant Lectern access to file URLs in extension [settings](open-extension-settings)"
+    "message": "You need to grant Herald access to file URLs in extension [settings](open-extension-settings)"
   },
   "error_add_permissions": {
-    "message": "You need to grant Lectern additional [permissions](request-permissions) for this website"
+    "message": "You need to grant Herald additional [permissions](request-permissions) for this website"
   },
   "languages_heading": {
     "message": "Language Options"
