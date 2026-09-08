@@ -8,11 +8,11 @@ resources:
     - repository: templates
       type: git
       name: Plumbing/core-templates
-    - repository: lectern
+    - repository: herald
       type: git
-      name: Open/lectern
+      name: Open/herald
 
 stages:
 - template: stages/sync/sync.yml@templates  # Template reference
   parameters:
-    checkout: lectern
+    checkout: herald
