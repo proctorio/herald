@@ -1,0 +1,22 @@
+# Canonical source is the internal Open repo; the sync mirrors it here.
+#
+# Grouping is the point: this repo pins dependencies exactly, and several
+# packages peer-pin each other to the same exact version (vitest and
+# @vitest/coverage-v8, for one). A single-package bump splits such a pair and
+# fails the install, so dependabot must bump related packages together in one
+# pull request.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      npm-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
