@@ -38,7 +38,7 @@
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.62.1",
     "@proctorio/eslint-config": "4.0.3",
-    "@vitest/coverage-v8": "4.1.10",
+    "@vitest/coverage-v8": "4.1.11",
     "@webext-core/fake-browser": "2.0.1",
     "adm-zip": "0.6.0",
     "esbuild": "0.28.2",
