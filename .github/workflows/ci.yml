@@ -1,0 +1,41 @@
+name: ci
+
+# Canonical source of this workflow is the internal Open repo; the sync
+# mirrors it here. Validates community pull requests with the same gates the
+# internal pipeline runs, so a merge that cannot build or install never
+# reaches the release flow: dependency bumps that split exact-pinned peer
+# pairs, test regressions, and anything that widens the network surface all
+# fail here, before a maintainer merges.
+#
+# Runs read-only on fork PRs (default GITHUB_TOKEN permissions), and main is
+# force-push-mirrored from the internal repo, so this is informational for
+# maintainers rather than a branch protection gate.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install
+      - run: npm test
+      - run: npm run build
+      - name: Audit the built extension
+        run: |
+          bash scripts/audit-remote-code.sh dist
+          bash scripts/verify-manifest.sh dist/manifest.json
+      - name: Build and audit the store artifact
+        run: |
+          npm run package
+          ver="$(node -p "require('./src/manifest.json').version")"
+          unzip -q "build/herald-${ver}.zip" -d build/unpacked
+          bash scripts/audit-remote-code.sh build/unpacked
+          bash scripts/verify-manifest.sh build/unpacked/manifest.json
