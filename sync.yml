@@ -16,3 +16,7 @@ stages:
 - template: stages/sync/sync.yml@templates  # Template reference
   parameters:
     checkout: herald
+    # GitHub-side merges (community patches, dependency bumps) are release
+    # candidates: the import commit carries no [skip ci], so version-pack
+    # runs on it and the release queues at the normal approval gate.
+    skip_ci: false
