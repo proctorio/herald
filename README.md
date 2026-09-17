@@ -1,13 +1,32 @@
 # Herald
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/jnchlbdjpliafjnppcmhfjogpajfejjl">
+    <img alt="Add Herald to Chrome" src="https://img.shields.io/badge/Add_to_Chrome-Herald_Beta-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white">
+  </a>
+</p>
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/jnchlbdjpliafjnppcmhfjogpajfejjl">
+    <img alt="Chrome Web Store version" src="https://img.shields.io/chrome-web-store/v/jnchlbdjpliafjnppcmhfjogpajfejjl">
+  </a>
+  <a href="https://chromewebstore.google.com/detail/jnchlbdjpliafjnppcmhfjogpajfejjl">
+    <img alt="Chrome Web Store users" src="https://img.shields.io/chrome-web-store/users/jnchlbdjpliafjnppcmhfjogpajfejjl">
+  </a>
+</p>
+
 A local-first text to speech reader for the browser, built to coexist with
 locked-down assessment environments. Herald reads web page content aloud
 using the voices already installed on your device. It makes zero network
 requests: no account, no cloud, no telemetry.
 
-Status: version 1.0.0 is under Chrome Web Store review. Releases, with the
-exact store artifact attached, are published under
-[Releases](https://github.com/proctorio/herald/releases).
+## Install
+
+Click the Add to Chrome button above, or find "Herald Beta: Text to Speech
+Reader" on the [Chrome Web Store](https://chromewebstore.google.com/detail/jnchlbdjpliafjnppcmhfjogpajfejjl).
+Herald currently ships through the beta channel listing; the production
+listing is being prepared. Every store release is also published under
+[Releases](https://github.com/proctorio/herald/releases) with the exact
+store artifact attached.
 
 ## Getting help
 
