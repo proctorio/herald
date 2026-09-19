@@ -40,7 +40,7 @@
     "@proctorio/eslint-config": "4.0.4",
     "@vitest/coverage-v8": "5.0.0",
     "@webext-core/fake-browser": "2.0.1",
-    "adm-zip": "0.6.0",
+    "adm-zip": "0.6.1",
     "esbuild": "0.28.2",
     "eslint": "10.10.0",
     "jsdom": "30.0.1",
