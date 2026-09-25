@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Canvas classic quiz fixture</title>
+  <!--
+    Structural stand-in for a Canvas LMS classic quiz "take" page, modeled on
+    the live markup inspected 2026-09-25 (content is invented). What matters:
+    a long instructions paragraph in the quiz header followed by much shorter
+    question blocks; each question's prompt nested apart from its answer
+    fieldset (header > name and points, text > question_text, answers >
+    fieldset); choice text inside labels; a screen-reader-only legend. The
+    old extractor trimmed every question as page chrome and never read the
+    choices at all.
+  -->
+  <style>
+    body { font-family: sans-serif; margin: 2rem; max-width: 50rem; }
+    .screenreader-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .display_question { border: 1px solid #ccc; margin: 1.5rem 0; }
+    .header { display: flex; justify-content: space-between; background: #f5f5f5; padding: 0.5rem 1rem; }
+    .text { padding: 1rem; }
+    fieldset { border: 0; margin: 0; padding: 0; }
+    .answer { border-top: 1px solid #eee; padding: 0.4rem 0; }
+  </style>
+</head>
+<body>
+  <div id="content" role="main">
+    <header class="quiz-header">
+      <h1>Unit 7 Checkpoint: Cellular Energy</h1>
+      <div>Started: Sep 25 at 9:00am</div>
+      <h2>Quiz Instructions</h2>
+      <div class="description user_content">
+        <p>This is a proctored checkpoint. Read every question carefully, choose the single best answer for each one, and remember that you may revisit any question before you submit the attempt at the end.</p>
+      </div>
+    </header>
+    <form id="submit_quiz_form">
+      <div id="questions">
+        <div class="question_holder" role="region">
+          <div id="question_1" class="display_question question multiple_choice_question">
+            <div class="header">
+              <span class="name">Question 1</span>
+              <span class="question_points_holder">1 pts</span>
+            </div>
+            <div class="text">
+              <div class="question_text user_content"><p>Which organelle produces most of a cell's ATP?</p></div>
+              <div class="answers">
+                <fieldset>
+                  <legend class="screenreader-only">Group of answer choices</legend>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q1" value="a"></span><div class="answer_label">Mitochondrion</div></label></div>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q1" value="b"></span><div class="answer_label">Golgi apparatus</div></label></div>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q1" value="c"></span><div class="answer_label">Lysosome</div></label></div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="question_holder" role="region">
+          <div id="question_2" class="display_question question multiple_choice_question">
+            <div class="header">
+              <span class="name">Question 2</span>
+              <span class="question_points_holder">1 pts</span>
+            </div>
+            <div class="text">
+              <div class="question_text user_content"><p>2 + 2 =</p></div>
+              <div class="answers">
+                <fieldset>
+                  <legend class="screenreader-only">Group of answer choices</legend>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q2" value="a"></span><div class="answer_label">Four</div></label></div>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q2" value="b"></span><div class="answer_label">Five</div></label></div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="question_holder" role="region">
+          <div id="question_3" class="display_question question true_false_question">
+            <div class="header">
+              <span class="name">Question 3</span>
+              <span class="question_points_holder">1 pts</span>
+            </div>
+            <div class="text">
+              <div class="question_text user_content"><p>Glycolysis takes place in the cytoplasm.</p></div>
+              <div class="answers">
+                <fieldset>
+                  <legend class="screenreader-only">Group of answer choices</legend>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q3" value="t"></span><div class="answer_label">True</div></label></div>
+                  <div class="answer"><label class="answer_row"><span class="answer_input"><input type="radio" name="q3" value="f"></span><div class="answer_label">False</div></label></div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

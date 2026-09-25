@@ -27,12 +27,13 @@ const ANSWERS = [
  *
  * @param {Object} context - The persistent browser context.
  * @param {string} extensionId - The extension id.
+ * @param {string} [fixture] - The fixture page to read.
  * @return {Promise<Object>} - The quiz page and the popup page.
  */
-async function openAndPlayQuiz(context, extensionId)
+async function openAndPlayQuiz(context, extensionId, fixture = "quiz.html")
 {
 	const quiz = await context.newPage();
-	await quiz.goto(`${FIXTURE_ORIGIN}/quiz.html`);
+	await quiz.goto(`${FIXTURE_ORIGIN}/${fixture}`);
 
 	const popup = await context.newPage();
 	await popup.goto(`chrome-extension://${extensionId}/popup.html?isPopup=1`);
@@ -130,6 +131,41 @@ test.describe("quiz extraction", () =>
 		expect(text).toContain("Question one.");
 		expect(text).toContain("Recorded plant growth by week");
 		expect(text).toContain("This trailing paragraph closes the fixture.");
+
+		await stopPlayback(popup);
+		await context.close();
+	});
+
+	test("a canvas classic quiz reads every question with numbered choices, even after a long instructions paragraph", async() =>
+	{
+		// Live Canvas pass, 2026-09-25: the long instructions paragraph was the
+		// outlier the article trim keys on, so every question after it was
+		// cut; and prompts nested apart from their fieldsets meant the choices
+		// never became text blocks at all. Question 2's prompt is deliberately
+		// shorter than the article threshold.
+		const { context, extensionId } = await launchWithExtension();
+		const { popup } = await openAndPlayQuiz(context, extensionId, "canvas-classic-quiz.html");
+
+		const info = await waitForPlayback(popup);
+		expect(info && info.playbackError).toBeFalsy();
+
+		const text = await getExtractedText(popup);
+		expect(text).toContain("This is a proctored checkpoint.");
+		expect(text).toContain("Which organelle produces most of a cell's ATP?");
+		expect(text).toMatch(/1\.\s+Mitochondrion/u);
+		expect(text).toMatch(/2\.\s+Golgi apparatus/u);
+		expect(text).toMatch(/3\.\s+Lysosome/u);
+		expect(text).toContain("2 + 2 =");
+		expect(text).toMatch(/1\.\s+Four/u);
+		expect(text).toContain("Glycolysis takes place in the cytoplasm.");
+		expect(text).toMatch(/1\.\s+True/u);
+		expect(text).toMatch(/2\.\s+False/u);
+		expect(text).not.toContain(LEGEND_TEXT);
+
+		// Document order: each prompt precedes its own choices.
+		expect(text.indexOf("Which organelle")).toBeLessThan(text.indexOf("Mitochondrion"));
+		expect(text.indexOf("Mitochondrion")).toBeLessThan(text.indexOf("2 + 2 ="));
+		expect(text.indexOf("2 + 2 =")).toBeLessThan(text.indexOf("Four"));
 
 		await stopPlayback(popup);
 		await context.close();
