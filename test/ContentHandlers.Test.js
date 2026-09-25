@@ -4,7 +4,7 @@
  * pickers for embedded document viewers. Handler indices below mirror the
  * table order in the source file.
  */
-import { contentHandlers } from "../src/js/content-handlers.js";
+import { contentHandlers, pageHasQuizToolFrame } from "../src/js/content-handlers.js";
 import { config } from "../src/js/defaults.js";
 
 const UNSUPPORTED = 0;
@@ -235,10 +235,21 @@ describe("canvas lms handler", () =>
 {
 	const handler = contentHandlers[CANVAS];
 
-	it("requires webNavigation plus the instructure origins", async() =>
+	const TAB = { id: 1 };
+
+	it("reads a classic quiz with no permission prompt: no tool frame, no extra permissions", async() =>
 	{
+		chrome.__config.executeScriptResult = [{ result: false }];
 		chrome.__config.permissionsContains = false;
-		const err = await handler.validate().catch(caught => caught);
+		await expect(handler.validate(TAB)).resolves.toBeUndefined();
+		await expect(handler.needsFrames(TAB)).resolves.toBe(false);
+	});
+
+	it("requires webNavigation plus the instructure origins when a new quizzes tool frame is present", async() =>
+	{
+		chrome.__config.executeScriptResult = [{ result: true }];
+		chrome.__config.permissionsContains = false;
+		const err = await handler.validate(TAB).catch(caught => caught);
 		expect(errorInfo(err)).toEqual({
 			code: "error_add_permissions",
 			perms: {
@@ -248,10 +259,20 @@ describe("canvas lms handler", () =>
 		});
 	});
 
-	it("passes when permissions are granted", async() =>
+	it("passes a tool frame page when permissions are granted", async() =>
 	{
+		chrome.__config.executeScriptResult = [{ result: true }];
 		chrome.__config.permissionsContains = true;
-		await expect(handler.validate()).resolves.toBeUndefined();
+		await expect(handler.validate(TAB)).resolves.toBeUndefined();
+	});
+
+	it("probes the tab's top frame only, with the self-contained page function", async() =>
+	{
+		chrome.__config.executeScriptResult = [{ result: false }];
+		await handler.needsFrames(TAB);
+		const request = chrome.__recorded.executeScript.at(-1);
+		expect(request.target).toEqual({ tabId: 1 });
+		expect(request.func).toBe(pageHasQuizToolFrame);
 	});
 
 	it("picks the new quizzes lti tool frame by its quiz-lti hostname", () =>
@@ -306,5 +327,39 @@ describe("default handler", () =>
 		expect(handler.match()).toBe(true);
 		expect(handler.match("chrome-error://anything", "")).toBe(true);
 		expect(typeof handler.validate).toBe("undefined");
+	});
+});
+
+describe("pageHasQuizToolFrame (runs in the page)", () =>
+{
+	afterEach(() =>
+	{
+		document.body.replaceChildren();
+	});
+
+	it("is false on a classic quiz page, including foreign helper frames", () =>
+	{
+		document.body.innerHTML = "<fieldset><legend>Group of answer choices</legend></fieldset>" +
+			"<iframe src='https://sso.canvaslms.com/post_message_forwarding'></iframe>" +
+			"<iframe src='/courses/1/files/2/preview'></iframe>";
+		expect(pageHasQuizToolFrame()).toBe(false);
+	});
+
+	it("is true for Canvas's LTI container, whatever its src", () =>
+	{
+		document.body.innerHTML = "<iframe id='tool_content' name='tool_content' src='/courses/1/external_tools/retrieve'></iframe>";
+		expect(pageHasQuizToolFrame()).toBe(true);
+	});
+
+	it("is true for a quiz-lti frame on another host", () =>
+	{
+		document.body.innerHTML = "<iframe src='https://school.quiz-lti-iad-prod.instructure.com/participant-sessions/4/take'></iframe>";
+		expect(pageHasQuizToolFrame()).toBe(true);
+	});
+
+	it("ignores unparseable srcs", () =>
+	{
+		document.body.innerHTML = "<iframe src='http://[bad'></iframe>";
+		expect(pageHasQuizToolFrame()).toBe(false);
 	});
 });
