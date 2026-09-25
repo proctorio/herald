@@ -40,7 +40,8 @@ export var defaults = {
 	showHighlighting: 1,
 	highlightFontSize: 3,
 	highlightWindowSize: 2,
-	examSafeMode: false
+	examSafeMode: false,
+	announceLinks: false
 };
 
 export var getSilenceTrack = lazy(() => makeSilenceTrack());
@@ -116,7 +117,7 @@ export function getSettings(names)
 {
 	return new Promise(function(fulfill) 
 	{
-		brapi.storage.local.get(names || ["voiceName", "rate", "pitch", "volume", "showHighlighting", "languages", "highlightFontSize", "highlightWindowSize", "preferredVoices", "fixBtSilenceGap", "darkMode", "examSafeMode"], fulfill);
+		brapi.storage.local.get(names || ["voiceName", "rate", "pitch", "volume", "showHighlighting", "languages", "highlightFontSize", "highlightWindowSize", "preferredVoices", "fixBtSilenceGap", "darkMode", "examSafeMode", "announceLinks"], fulfill);
 	});
 }
 
@@ -132,7 +133,7 @@ export function clearSettings(names)
 {
 	return new Promise(function(fulfill) 
 	{
-		brapi.storage.local.remove(names || ["voiceName", "rate", "pitch", "volume", "showHighlighting", "languages", "highlightFontSize", "highlightWindowSize", "preferredVoices", "fixBtSilenceGap", "darkMode", "examSafeMode"], fulfill);
+		brapi.storage.local.remove(names || ["voiceName", "rate", "pitch", "volume", "showHighlighting", "languages", "highlightFontSize", "highlightWindowSize", "preferredVoices", "fixBtSilenceGap", "darkMode", "examSafeMode", "announceLinks"], fulfill);
 	});
 }
 

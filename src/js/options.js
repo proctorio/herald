@@ -189,6 +189,24 @@ import { voices$ } from "./tts-engines.js";
 	rxjs.combineLatest([observeSetting("showHighlighting"), observeSetting("examSafeMode"), domReadyPromise])
 		.subscribe(([showHighlighting, examSafeMode]) => byId("show-highlighting").value = String(effectiveShowHighlighting(showHighlighting || defaults.showHighlighting, examSafeMode)));
 
+	// Link announcements are opt-in: inside running prose they arrive every
+	// few words (owner decision 2026-09-25). Buttons and icon-only controls
+	// are always announced, so they have no option.
+	domReadyPromise
+		.then(() =>
+		{
+			byId("announce-links").addEventListener("change", function()
+			{
+				updateSettings({announceLinks: this.checked});
+			});
+		});
+
+	rxjs.combineLatest([observeSetting("announceLinks"), domReadyPromise])
+		.subscribe(([announceLinks]) =>
+		{
+			byId("announce-links").checked = Boolean(announceLinks);
+		});
+
 	// exam-safe mode (milestone M5): reads the active tab only, never opens
 	// windows, and keeps overlay announcements on.
 	domReadyPromise
