@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Link and button announcement fixture</title>
+  <!--
+    HERALD-6/7/8: links and buttons inside the text being read are announced
+    screen-reader style ("Syllabus, link", "Submit, button"); controls with
+    no visible text read their accessible label. Navigation links and a
+    toolbar of bare buttons must stay silent: announcing never widens which
+    parts of the page are read.
+  -->
+  <style>
+    body { font-family: sans-serif; margin: 2rem; max-width: 45rem; }
+    .toolbar { display: flex; gap: 0.5rem; }
+    svg { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+  <nav><a href="/dashboard">Dashboard</a> <a href="/calendar">Calendar</a></nav>
+  <div class="toolbar"><button type="button">Zoom in</button><button type="button">Zoom out</button></div>
+  <main>
+    <h1>Lab Report Instructions</h1>
+    <p>Review the <a href="/syllabus">course syllabus</a> before you begin, because it lists every grading rule.</p>
+    <p>Record each measurement in the table provided, and round every value to two decimal places.</p>
+    <p>If you get stuck, mark the step for later with this control <button type="button" aria-label="Flag question"><svg aria-hidden="true" viewBox="0 0 16 16"><path d="M2 1v14h2V9h9l-2-4 2-4H4V1z"></path></svg></button> and keep going.</p>
+    <p>Icon links work the same way, for example this one <a href="/help" aria-label="Open help"><svg aria-hidden="true" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"></circle></svg></a> opens the help pages.</p>
+    <p>When you finish every section, press <button type="button">Submit answers</button> to save your final report.</p>
+    <p>To test a single result first, use this form control <input type="submit" value="Check work"> before submitting.</p>
+  </main>
+</body>
+</html>

@@ -13,6 +13,7 @@ var heraldDoc = new function()
 	{
 		if (index == 0)
 		{
+			announceLinks = await readAnnounceLinks();
 			const math = await getMath();
 			try
 			{
@@ -217,11 +218,13 @@ var heraldDoc = new function()
 		var hidden = Array.from(elem.querySelectorAll("*"))
 			.filter(function(node) { return isVisible(node) && dontRead(node); })
 			.map(hideAndRemember);
+		var roleSpans = [];
 		try
 		{
 			findWithSelf(elem, "ol, ul").forEach(addNumbering);
 			findWithSelf(elem, "fieldset").forEach(addChoiceNumbering);
 			Array.from(elem.querySelectorAll("img[alt]")).filter(isVisible).forEach(addAltText);
+			roleSpans = findWithSelf(elem, CONTROL_SELECTOR).filter(isVisible).map(addRoleAnnouncement).filter(Boolean);
 
 			return multiBlocks.has(elem)
 				? Array.from(elem.children).filter(isVisible).map(getText)
@@ -230,6 +233,7 @@ var heraldDoc = new function()
 		finally
 		{
 			for (const surrogate of elem.querySelectorAll(".herald-numbering, .herald-alt")) surrogate.remove();
+			for (const span of roleSpans) span.remove();
 			for (const entry of hidden) restoreDisplay(entry);
 		}
 	}
@@ -256,6 +260,60 @@ var heraldDoc = new function()
 			span.textContent = " " + alt + " ";
 			img.after(span);
 		}
+	}
+
+	// Links and buttons are announced screen-reader style after their text
+	// ("Syllabus, link", "Submit, button"; HERALD-6/7/8, owner decision
+	// 2026-09-25), and a control with no visible text reads its accessible
+	// label instead ("Flag question, button" for an icon-only button). A
+	// temporary span carries the announcement and is removed in the same
+	// cleanup pass as the other surrogates (the span is returned so cleanup
+	// can remove exactly what was added). Inputs have no text content, so
+	// their span goes after them and carries the value too.
+	// Links with visible text are announced only when the reader opts in
+	// (settings, "Announce links", off by default): inside running prose they
+	// arrive every few words (774 on one Wikipedia article). A control with
+	// no visible text is always announced, or it would say nothing at all.
+	var announceLinks = false;
+
+	async function readAnnounceLinks()
+	{
+		if (typeof getSettings != "function") return false;
+		try
+		{
+			return Boolean((await getSettings(["announceLinks"])).announceLinks);
+		}
+		catch (err)
+		{
+			return false;
+		}
+	}
+
+	var CONTROL_SELECTOR = "a[href], [role=link], button, [role=button], input[type=button], input[type=submit], input[type=reset]";
+
+	function addRoleAnnouncement(control)
+	{
+		var role = control.matches("a[href], [role=link]") ? "link" : "button";
+		var isInput = control.matches("input");
+		var visibleText = isInput ? (control.value || "").trim() : getInnerText(control);
+		var label = visibleText || (control.getAttribute("aria-label") || control.getAttribute("title") || "").trim();
+		if (!label) return null;
+		if (role == "link" && visibleText && !announceLinks) return null;
+
+		var span = document.createElement("span");
+		span.className = "herald-role";
+		if (isInput)
+		{
+			span.textContent = " " + label + ", " + role + " ";
+			control.after(span);
+		}
+		else
+		{
+			span.textContent = (visibleText ? ", " : label + ", ") + role;
+			control.append(span);
+		}
+
+		return span;
 	}
 
 	function makeNumberingSpan(number)
@@ -302,33 +360,42 @@ var heraldDoc = new function()
 		var style = getComputedStyle(elem);
 
 		// Labels that carry radio or checkbox choice text are read; the bare
-		// "label" entry in ignoreTags only hides plain form labels.
-		var ignoreTags = isChoiceLabel(elem) ? getIgnoreTagsWithoutLabel() : self.ignoreTags;
+		// "label" entry in ignoreTags only hides plain form labels. Buttons
+		// inside a block being read are read and announced as buttons; the
+		// "button" entry still keeps them out of block discovery, so toolbars
+		// and button bars never become content of their own.
+		var ignoreTags = self.ignoreTags;
+		if (isChoiceLabel(elem)) ignoreTags = getIgnoreTagsWithout("label");
+		else if (elem.matches("button")) ignoreTags = getIgnoreTagsWithout("button");
 
 		return elem.matches(ignoreTags) || isHiddenChoiceLegend(elem) || elem.matches("sup") || style.float == "right" || style.position == "fixed";
 	}
 
-	var ignoreTagsWithoutLabel = {source: null,
-																															value: null};
+	// ignoreTags minus one entry, cached per entry; site handlers can edit
+	// ignoreTags, so the cache keys on the list it was derived from.
+	var ignoreTagsWithout = {};
 
-	function getIgnoreTagsWithoutLabel()
+	function getIgnoreTagsWithout(entry)
 	{
-		if (ignoreTagsWithoutLabel.source != self.ignoreTags)
+		var cached = ignoreTagsWithout[entry];
+		if (!cached || cached.source != self.ignoreTags)
 		{
-			ignoreTagsWithoutLabel.source = self.ignoreTags;
-			ignoreTagsWithoutLabel.value = self.ignoreTags.split(",")
-				.map(function(item)
-				{
-					return item.trim();
-				})
-				.filter(function(item)
-				{
-					return item != "label";
-				})
-				.join(", ");
+			cached = ignoreTagsWithout[entry] = {
+				source: self.ignoreTags,
+				value: self.ignoreTags.split(",")
+					.map(function(item)
+					{
+						return item.trim();
+					})
+					.filter(function(item)
+					{
+						return item != entry;
+					})
+					.join(", ")
+			};
 		}
 
-		return ignoreTagsWithoutLabel.value;
+		return cached.value;
 	}
 
 	function isChoiceLabel(elem)

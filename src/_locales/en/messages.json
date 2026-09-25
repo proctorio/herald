@@ -74,6 +74,15 @@
   "options_exam_safe_description": {
     "message": "Reads only the active tab, never opens new windows, and keeps exam overlay announcements on."
   },
+  "options_reading_heading": {
+    "message": "Reading"
+  },
+  "options_announce_links_label": {
+    "message": "Announce links"
+  },
+  "options_announce_links_description": {
+    "message": "Says \"link\" after each link, the way a screen reader does. Buttons and icon-only controls are always announced."
+  },
   "options_expand_label": {
     "message": "Open advanced options"
   },
