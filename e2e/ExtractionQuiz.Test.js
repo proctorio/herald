@@ -171,6 +171,32 @@ test.describe("quiz extraction", () =>
 		await context.close();
 	});
 
+	test("a canvas new quiz reads every prompt with numbered choices and announces each question once", async() =>
+	{
+		// Live Canvas pass, 2026-09-25: on New Quizzes the shipped extractor
+		// read the prompts only, never the choices, and dropped short prompts;
+		// and the legend's ScreenReaderContent span repeated the question
+		// number the heading had just announced.
+		const { context, extensionId } = await launchWithExtension();
+		const { popup } = await openAndPlayQuiz(context, extensionId, "canvas-new-quiz.html");
+
+		const info = await waitForPlayback(popup);
+		expect(info && info.playbackError).toBeFalsy();
+
+		const text = await getExtractedText(popup);
+		expect(text).toContain("Which gas do plants take in for photosynthesis?");
+		expect(text).toMatch(/1\.\s+Carbon dioxide/u);
+		expect(text).toMatch(/2\.\s+Nitrogen/u);
+		expect(text).toMatch(/3\.\s+Helium/u);
+		expect(text).toContain("Roots absorb:");
+		expect(text).toMatch(/1\.\s+Water/u);
+		expect(text.split("Question at position 1").length - 1).toBe(1);
+		expect(text.split("Question at position 2").length - 1).toBe(1);
+
+		await stopPlayback(popup);
+		await context.close();
+	});
+
 	test("extraction and stop leave the page DOM unchanged", async() =>
 	{
 		const { context, extensionId } = await launchWithExtension();

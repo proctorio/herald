@@ -357,11 +357,15 @@ var heraldDoc = new function()
 
 	// Screen-reader-only legends inside a choice fieldset (the clip or offscreen
 	// absolute positioning patterns) duplicate what the numbered choices already
-	// convey, so they are excluded from the read text.
+	// convey, so they are excluded from the read text. That includes visually
+	// hidden content INSIDE such a legend: Canvas New Quizzes wrap the legend
+	// text in an InstUI ScreenReaderContent span, which re-announced the
+	// question number the question heading had just read.
 	function isHiddenChoiceLegend(elem)
 	{
-		if (!elem.matches("legend")) return false;
-		if (!isChoiceFieldset(elem.closest("fieldset"))) return false;
+		var legend = elem.closest("legend");
+		if (!legend) return false;
+		if (!isChoiceFieldset(legend.closest("fieldset"))) return false;
 
 		return isScreenReaderOnly(elem);
 	}
