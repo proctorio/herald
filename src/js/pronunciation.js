@@ -16,7 +16,14 @@
 // the dictionary word "proctor" and spelling out the leftover "io".
 const corrections = [
 	{pattern: /proctorio/gi,
-		spokenAs: "Prock Torio"}
+		spokenAs: "Prock Torio"},
+
+	// LMS point values ("33.33 pts", "1 pts" on Canvas quizzes) read as a
+	// clipped "pits" or letter by letter. Only a number followed by the
+	// abbreviation is rewritten, so words like PTSD are untouched, and a
+	// bare 1 takes the singular.
+	{pattern: /\b(\d+(?:\.\d+)?)\s*pts?\b/gi,
+		spokenAs: (match, value) => value + (value == "1" ? " point" : " points")}
 ];
 
 // Returns the text with every correction applied, ready for the engine.

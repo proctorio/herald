@@ -42,4 +42,26 @@ describe("applyPronunciations", () =>
 	{
 		expect(applyPronunciations("")).toBe("");
 	});
+
+	it("expands LMS point abbreviations after a number", () =>
+	{
+		expect(applyPronunciations("33.33 pts")).toBe("33.33 points");
+		expect(applyPronunciations("Question 2 5 Pts")).toBe("Question 2 5 points");
+		expect(applyPronunciations("10pts")).toBe("10 points");
+		expect(applyPronunciations("2 pt")).toBe("2 points");
+	});
+
+	it("takes the singular for exactly one point", () =>
+	{
+		expect(applyPronunciations("1 pts")).toBe("1 point");
+		expect(applyPronunciations("1 pt")).toBe("1 point");
+		expect(applyPronunciations("1.5 pts")).toBe("1.5 points");
+	});
+
+	it("leaves pts alone without a number, and inside longer words", () =>
+	{
+		expect(applyPronunciations("Earn more pts.")).toBe("Earn more pts.");
+		expect(applyPronunciations("PTSD awareness")).toBe("PTSD awareness");
+		expect(applyPronunciations("12 ptsd")).toBe("12 ptsd");
+	});
 });
