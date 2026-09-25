@@ -62,9 +62,12 @@ import { registerMessageListener } from "./messaging.js";
 		return (/\/(quizzes|assessments)(\/|$)/).test(location.pathname);
 	}
 
+	// Classic quiz markup, or the New Quizzes app root: New Quizzes can take
+	// the page itself on assignment URLs (/assignments/N/taking/N/take), which
+	// the quiz path test above does not match.
 	function hasQuizMarkup()
 	{
-		return Boolean(document.querySelector("#questions, .question_holder, .display_question, .quiz_sortable"));
+		return Boolean(document.querySelector("#questions, .question_holder, .display_question, .quiz_sortable, #new-quizzes-root"));
 	}
 
 	async function getCurrentIndex() 

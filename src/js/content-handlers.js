@@ -141,14 +141,40 @@ export var contentHandlers = [
 				(/\/(quizzes|assessments)([#/?]|$|\/)/).test(url);
 		},
 		targetOrigins: ["https://*.instructure.com/"],
-		validate: function()
+
+		// Classic quizzes render in the top frame, which the toolbar click's
+		// activeTab grant already covers: no permission prompt, no frame
+		// lookup. Only a page that actually embeds the New Quizzes tool frame
+		// (cross-origin, so outside activeTab) needs the optional permissions.
+		// Gating every quiz URL made Classic quizzes unreadable without a
+		// prompt a locked-down exam may never allow (live Canvas pass,
+		// 2026-09-25). The probe runs in the top frame, which activeTab
+		// covers, and only reads iframe attributes.
+		needsFrames: function(tab)
+		{
+			return brapi.scripting.executeScript({
+				target: {tabId: tab.id},
+				func: pageHasQuizToolFrame
+			})
+				.then(function(results)
+				{
+					return Boolean(results && results[0] && results[0].result);
+				});
+		},
+		validate: function(tab)
 		{
 			var perms = {
 				permissions: ["webNavigation"],
 				origins: this.targetOrigins
 			};
 
-			return brapi.permissions.contains(perms)
+			return this.needsFrames(tab)
+				.then(function(needed)
+				{
+					if (!needed) return true;
+
+					return brapi.permissions.contains(perms);
+				})
 				.then(function(has)
 				{
 					if (!has) throw new Error(JSON.stringify({code: "error_add_permissions",
@@ -193,4 +219,34 @@ function getHostname(url)
 	{
 		return "";
 	}
+}
+
+/**
+ * @description Runs IN the page (injected via scripting.executeScript, so it
+ * must stay self-contained): reports whether the page embeds a New Quizzes
+ * style tool frame. Canvas launches LTI tools into its tool_content iframe,
+ * whose src can be a same-host launch URL that only then redirects to the
+ * quiz-lti host, so the container counts on its own; otherwise an iframe
+ * whose src is on another instructure host (quiz-lti or a tool subdomain)
+ * counts, mirroring the Canvas handler's getFrameId.
+ *
+ * @return {boolean} - True when a tool frame is present.
+ */
+export function pageHasQuizToolFrame()
+{
+	if (document.querySelector("iframe#tool_content, iframe[name='tool_content']")) return true;
+
+	return Array.from(document.querySelectorAll("iframe[src]")).some(function(frame)
+	{
+		try
+		{
+			var host = new URL(frame.getAttribute("src"), location.href).hostname;
+
+			return host != location.hostname && (host.includes("quiz-lti") || host.endsWith(".instructure.com"));
+		}
+		catch (err)
+		{
+			return false;
+		}
+	});
 }

@@ -211,6 +211,18 @@ async function playText(text, opts)
 																					args: [text, opts]});
 }
 
+// Handlers that read from a child frame resolve it through webNavigation, an
+// optional permission. A handler whose frame is conditional (Canvas: only New
+// Quizzes embed one) says so through needsFrames, and otherwise the top frame
+// is used without touching webNavigation at all.
+async function resolveFrameId(handler, tab)
+{
+	if (!handler.getFrameId) return undefined;
+	if (handler.needsFrames && !await handler.needsFrames(tab)) return undefined;
+
+	return getAllFrames(tab.id).then(frames => handler.getFrameId(frames));
+}
+
 async function playTab(tabId) 
 {
 	const tab = tabId ? await getTab(tabId) : await getActiveTab();
@@ -230,7 +242,7 @@ async function playTab(tabId)
 		}
 		else 
 		{
-			const frameId = handler.getFrameId && await getAllFrames(tab.id).then(frames => handler.getFrameId(frames));
+			const frameId = await resolveFrameId(handler, tab);
 			if (!await contentScriptAlreadyInjected(tab, frameId)) await injectContentScript(tab, frameId, handler.extraScripts);
 			await brapi.storage.local.set({"sourceUri": "contentscript:" + tab.id});
 		}

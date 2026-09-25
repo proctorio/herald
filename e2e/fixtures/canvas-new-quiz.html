@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Canvas New Quizzes fixture</title>
+  <!--
+    Structural stand-in for a Canvas New Quizzes page taken in the Canvas page
+    itself (InstUI components), modeled on the live markup inspected
+    2026-09-25 (content is invented). What matters: a screen-reader-only
+    question heading; visible type and points labels; an outer fieldset whose
+    legend wraps the question number in a ScreenReaderContent span; the
+    choices in an inner radiogroup fieldset with labels bound by for=. The
+    shipped extractor read the prompts only, never the choices, and skipped
+    short prompts; the question number must be announced once, not twice.
+  -->
+  <style>
+    body { font-family: sans-serif; margin: 2rem; max-width: 50rem; }
+    .screenReaderContent { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .question { border: 1px solid #ccc; margin: 1.5rem 0; padding: 1rem; }
+    fieldset { border: 0; margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <div id="new-quizzes-root">
+    <div id="root">
+      <h1>Plant Biology Check</h1>
+      <div class="question" role="region">
+        <h2><span class="css-r9cwls-screenReaderContent screenReaderContent">Question at position 1</span></h2>
+        <span>Multiple Choice</span> <span>1 point</span>
+        <fieldset>
+          <legend><span class="css-r9cwls-screenReaderContent screenReaderContent">Question at position 1</span></legend>
+          <div class="prompt"><p>Which gas do plants take in for photosynthesis?</p></div>
+          <fieldset role="radiogroup">
+            <div><input type="radio" id="q1a" name="q1"><label for="q1a">Carbon dioxide</label></div>
+            <div><input type="radio" id="q1b" name="q1"><label for="q1b">Nitrogen</label></div>
+            <div><input type="radio" id="q1c" name="q1"><label for="q1c">Helium</label></div>
+          </fieldset>
+        </fieldset>
+      </div>
+      <div class="question" role="region">
+        <h2><span class="css-r9cwls-screenReaderContent screenReaderContent">Question at position 2</span></h2>
+        <span>Multiple Choice</span> <span>1 point</span>
+        <fieldset>
+          <legend><span class="css-r9cwls-screenReaderContent screenReaderContent">Question at position 2</span></legend>
+          <div class="prompt"><p>Roots absorb:</p></div>
+          <fieldset role="radiogroup">
+            <div><input type="radio" id="q2a" name="q2"><label for="q2a">Water</label></div>
+            <div><input type="radio" id="q2b" name="q2"><label for="q2b">Sunlight</label></div>
+          </fieldset>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

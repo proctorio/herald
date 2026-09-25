@@ -63,23 +63,33 @@ var heraldDoc = new function()
 		var countChars = textBlocks.reduce(function(sum, elem) { return sum + getInnerText(elem).length; }, 0);
 		console.log("Found", textBlocks.length, "blocks", countChars, "chars in", new Date() - start, "ms");
 
-		if (countChars < 1000)
+		// Quiz pages (visible radio or checkbox choice groups) are read in full
+		// at the low threshold, untrimmed. Short prompts like "2 + 2 =" fall
+		// under the article threshold, and the outlier trim below exists to
+		// shed page chrome around a long article: on a Canvas classic quiz the
+		// instructions paragraph was the outlier and every question after it
+		// was cut (live Canvas pass, 2026-09-25).
+		var isQuiz = hasChoiceGroups();
+		if (countChars < 1000 || isQuiz)
 		{
 			textBlocks = findTextBlocks(3);
 			var texts = textBlocks.map(getInnerText);
 			console.log("Using lower threshold, found", textBlocks.length, "blocks", texts.join("").length, "chars");
 
-			// trim the head and the tail
+			// trim the head and the tail (articles only, see above)
 			var head, tail;
-			for (var i = 3; i < texts.length && !head; i++)
+			if (!isQuiz)
 			{
-				var dist = getGaussian(texts, 0, i);
-				if (texts[i].length > dist.mean + 2 * dist.stdev) head = i;
-			}
-			for (var i = texts.length - 4; i >= 0 && !tail; i--)
-			{
-				var dist = getGaussian(texts, i + 1, texts.length);
-				if (texts[i].length > dist.mean + 2 * dist.stdev) tail = i + 1;
+				for (var i = 3; i < texts.length && !head; i++)
+				{
+					var dist = getGaussian(texts, 0, i);
+					if (texts[i].length > dist.mean + 2 * dist.stdev) head = i;
+				}
+				for (var i = texts.length - 4; i >= 0 && !tail; i--)
+				{
+					var dist = getGaussian(texts, i + 1, texts.length);
+					if (texts[i].length > dist.mean + 2 * dist.stdev) tail = i + 1;
+				}
 			}
 			if (head || tail)
 			{
@@ -156,6 +166,12 @@ var heraldDoc = new function()
 				}
 				else rows.forEach(walk);
 			}
+
+			// A radio or checkbox choice group is one readable block. Its choice
+			// text lives in labels, which the scan skips, so where the prompt is
+			// nested apart from the fieldset (Canvas classic quizzes) the choices
+			// were never read at all.
+			else if (isChoiceFieldset(elem)) addBlock(elem);
 			else
 			{
 				if (hasTextNodes(elem)) addBlock(elem);
@@ -326,6 +342,14 @@ var heraldDoc = new function()
 		return Boolean(bound) && bound.matches("input[type=radio], input[type=checkbox]");
 	}
 
+	function hasChoiceGroups()
+	{
+		return Array.from(document.querySelectorAll("fieldset")).some(function(fieldset)
+		{
+			return isChoiceFieldset(fieldset) && isVisible(fieldset);
+		});
+	}
+
 	function isChoiceFieldset(elem)
 	{
 		return Boolean(elem) && elem.matches("fieldset") && Boolean(elem.querySelector("input[type=radio], input[type=checkbox]"));
@@ -333,11 +357,15 @@ var heraldDoc = new function()
 
 	// Screen-reader-only legends inside a choice fieldset (the clip or offscreen
 	// absolute positioning patterns) duplicate what the numbered choices already
-	// convey, so they are excluded from the read text.
+	// convey, so they are excluded from the read text. That includes visually
+	// hidden content INSIDE such a legend: Canvas New Quizzes wrap the legend
+	// text in an InstUI ScreenReaderContent span, which re-announced the
+	// question number the question heading had just read.
 	function isHiddenChoiceLegend(elem)
 	{
-		if (!elem.matches("legend")) return false;
-		if (!isChoiceFieldset(elem.closest("fieldset"))) return false;
+		var legend = elem.closest("legend");
+		if (!legend) return false;
+		if (!isChoiceFieldset(legend.closest("fieldset"))) return false;
 
 		return isScreenReaderOnly(elem);
 	}

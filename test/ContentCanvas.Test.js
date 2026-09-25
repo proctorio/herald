@@ -66,4 +66,12 @@ describe("getRequireJs on instructure hostnames", () =>
 		document.body.innerHTML = "<div class=\"display_question\"></div>";
 		expect(await getRequireJs()).toEqual(CANVAS_QUIZ);
 	});
+
+	it("adds the canvas quiz handler for New Quizzes taken in the page on an assignment url", async() =>
+	{
+		window.history.pushState({}, "", "/courses/1/assignments/2/taking/3/take");
+		expect(await getRequireJs()).toEqual(GENERIC);
+		document.body.innerHTML = "<div id=\"new-quizzes-root\"><div id=\"root\"></div></div>";
+		expect(await getRequireJs()).toEqual(CANVAS_QUIZ);
+	});
 });
