@@ -89,6 +89,26 @@ async function init()
 	byId("toggle-dark-mode").addEventListener("click", toggleDarkMode);
 
 	refreshSize();
+
+	// Clicking the toolbar icon IS the user's explicit read action (and the
+	// only thing that grants page access, via activeTab), so reading starts
+	// at once, as upstream always did. Decision D7 removed this; testers
+	// took the idle popup and the empty popout window for a broken
+	// extension, so D7 is reversed (2026-09-24). popup.html loaded any
+	// other way, for example as a plain tab, stays idle.
+	if (isToolbarLaunch())
+	{
+		const {state} = await bgPageInvoke("getPlaybackState");
+		if (state == "PAUSED" || state == "STOPPED") onPlay();
+	}
+}
+
+// The real toolbar popup, or the popout window, which only that popup ever
+// opens (with the source tab in ?tab=) when the transcript shows in a
+// window.
+function isToolbarLaunch()
+{
+	return queryString.tab != null || brapi.extension.getViews({type: "popup"}).includes(window);
 }
 
 function handleError(err)
@@ -340,7 +360,7 @@ function onPlay()
 		.then(function(stateInfo)
 		{
 			if (stateInfo.state == "PAUSED") return bgPageInvoke("resume");
-			else return bgPageInvoke("playTab", queryString.tab ? [Number(queryString.tab)] : []);
+			else return playTargetTabId().then(tabId => bgPageInvoke("playTab", tabId ? [tabId] : []));
 		})
 		.then(updateButtons)
 		.catch(err =>
@@ -348,6 +368,21 @@ function onPlay()
 			if (requestId == currentPlayRequestId) handleError(err);
 			else console.debug("Ignoring error from an earlier request", err);
 		});
+}
+
+// The tab to read. The popout window carries it in ?tab=. The toolbar popup
+// reads the active tab of the window it is attached to, resolved here: the
+// service worker's fallback ("active tab of the last focused window") can
+// still name another window at the instant the popup opens, which made the
+// read-on-click start fail as an unreadable page.
+async function playTargetTabId()
+{
+	if (queryString.tab) return Number(queryString.tab);
+	if (!queryString.isPopup) return null;
+	const [tab] = await brapi.tabs.query({active: true,
+																																							currentWindow: true});
+
+	return tab ? tab.id : null;
 }
 
 function reloadAndPlay()
