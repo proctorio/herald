@@ -163,6 +163,7 @@ export function makeChrome()
 			},
 
 			onInstalled: makeEvent(),
+			onMessageExternal: makeEvent(),
 
 			/**
 			 * @description Reports the configured platform.

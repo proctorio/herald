@@ -26,6 +26,14 @@ same commit as any manifest permission change.
 |---|---|---|
 | `http://*/`, `https://*/`, `file://*/*` | `error_add_permissions` flow raised by `validate()` in `js/content-handlers.js`, surfaced to the user in `js/popup.js` | Site handlers that must reach a specific origin (for example a document viewer frame) ask for that origin when the user first reads there. Nothing is granted at install; the install prompt stays clean. |
 
+## externally_connectable (who may message Herald)
+
+Not a permission, but it widens what can reach Herald, so it is justified here.
+
+| Key | Code path | Justification |
+|---|---|---|
+| `ids`: `["*"]` | `registerExternalMessageListener` in `js/external-messaging.js`, registered by `js/events.js`; the lockdown builds as SHA-256 hashes in `js/lockdown-ids.js` | The lockdown channel (decision D8, `LOCKDOWN-CHANNEL.md`). The lockdown build IDs may not be published, so Chrome's plain-ID allowlist cannot name them: any extension can deliver, and Herald answers only a sender whose ID hashes to a lockdown build. Every other sender gets no answer at all. No `matches`: no web page can connect. `scripts/verify-manifest.sh` pins this exact shape. |
+
 ## Explicitly absent
 
 - `webRequest`, `declarativeNetRequest`: removed in phase 2. No network
