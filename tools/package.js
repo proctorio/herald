@@ -10,9 +10,10 @@
  * package is assembled by the internal release pipeline from this zip plus
  * the internal icon tooling; no channel branding logic lives here.
  */
-import { readFileSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { sep } from "node:path";
 import { execFileSync } from "node:child_process";
-import AdmZip from "adm-zip";
+import { zipSync } from "fflate";
 
 rmSync("build", { recursive: true, force: true });
 mkdirSync("build", { recursive: true });
@@ -40,8 +41,27 @@ for (const name of ["icon", "action"])
 const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf-8"));
 const artifact = `build/herald-${manifest.version}.zip`;
 
-const zip = new AdmZip();
-zip.addLocalFolder("dist", "", entry => !entry.endsWith(".map"));
-zip.writeZip(artifact);
+// Every folder and file in dist/ except source maps, named with forward
+// slashes on every platform. Each entry keeps the attributes adm-zip gave it
+// before fflate replaced it: Unix origin, the file's mode and mtime, the
+// MS-DOS directory flag on folders. Folders are stored, files deflated.
+const entries = {};
+for (const relative of readdirSync("dist", { recursive: true }))
+{
+	const name = relative.split(sep).join("/");
+	if (name.endsWith(".map")) continue;
+	const stats = statSync(`dist/${relative}`);
+	const folder = stats.isDirectory();
+	const attributes = { os: 3, attrs: ((stats.mode & 0xffff) << 16 | (folder ? 0x10 : 0)) >>> 0, mtime: stats.mtime };
+	if (folder)
+	{
+		entries[`${name}/`] = [new Uint8Array(0), { ...attributes, level: 0 }];
+	}
+	else
+	{
+		entries[name] = [readFileSync(`dist/${relative}`), attributes];
+	}
+}
+writeFileSync(artifact, zipSync(entries));
 
 console.info(`${artifact} written`);
