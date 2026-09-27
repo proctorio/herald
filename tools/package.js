@@ -13,6 +13,7 @@
 import { readFileSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import AdmZip from "adm-zip";
+import { findLockdownIds } from "./audit-lockdown-ids.js";
 
 rmSync("build", { recursive: true, force: true });
 mkdirSync("build", { recursive: true });
@@ -35,6 +36,14 @@ for (const name of ["icon", "action"])
 			throw new Error(`dist/img/${name}-${size}.png does not match the clean store art; refusing to package.`);
 		}
 	}
+}
+
+// Only hashes of the lockdown extension IDs may ship (src/js/lockdown-ids.js);
+// refuse a package that carries one in plain text.
+const { findings } = findLockdownIds("dist");
+if (findings.length)
+{
+	throw new Error(`dist carries ${findings.length} lockdown extension ID(s) in plain text; refusing to package. Run node tools/audit-lockdown-ids.js dist.`);
 }
 
 const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf-8"));

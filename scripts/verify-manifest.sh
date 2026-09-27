@@ -168,6 +168,32 @@ if isinstance(csp, dict):
         if "unsafe-eval" in str(v):
             fail(f"CSP {k} allows unsafe-eval: {v!r}")
 
+# ------------------------------------------------ external messaging surface
+
+# The lockdown channel (docs/herald/LOCKDOWN-CHANNEL.md). The lockdown build
+# IDs may not appear in plain text, so the manifest admits every extension
+# (ids "*") and Herald answers only IDs whose hash it knows. A matches entry
+# would open the channel to web pages; a plain ID list would publish lockdown
+# IDs and lock out every build it leaves off.
+ec = m.get("externally_connectable")
+if not isinstance(ec, dict):
+    fail("externally_connectable is missing. Declare it explicitly as "
+         "{\"ids\": [\"*\"]} (see docs/herald/LOCKDOWN-CHANNEL.md).")
+else:
+    if "matches" in ec:
+        fail(f"externally_connectable.matches lets web pages message Herald: "
+             f"{ec['matches']!r}. No web page may connect.")
+    if ec.get("ids") != ["*"]:
+        fail(f"externally_connectable.ids must be exactly [\"*\"], found "
+             f"{len(ec.get('ids') or [])} entries. Lockdown builds are matched by "
+             f"hash in src/js/lockdown-ids.js, never listed here.")
+    extra = sorted(set(ec) - {"ids", "matches"})
+    if extra:
+        fail(f"externally_connectable has unexpected keys: {extra!r}.")
+    if list(ec) == ["ids"] and ec["ids"] == ["*"]:
+        ok("externally_connectable: extensions only (lockdown builds matched "
+           "by hash in code), no web pages")
+
 # ------------------------------------------------------------------ output
 
 def section(title, items, prefix):
