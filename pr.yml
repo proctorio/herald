@@ -21,3 +21,10 @@ stages:
     # (fails in the vitest forks pool). Parameter requires the
     # core-templates nodeVersion change to be merged first.
     nodeVersion: "24.x"
+    # Lint with this repo's own eslint.config.js instead of the template's
+    # org config over src/ (which lints the vendored code and ignores this
+    # repo's scoped relaxations). The check script, never `npm run lint`:
+    # that one runs eslint --fix, and CI must fail on a lint error, not fix
+    # the code in place and pass. Parameter requires the core-templates
+    # lintCommand change to be merged first.
+    lintCommand: "npm run lint:check"
