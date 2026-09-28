@@ -17,6 +17,7 @@
     "package": "node tools/package.js",
     "audit:remote": "bash scripts/audit-remote-code.sh dist",
     "audit:manifest": "bash scripts/verify-manifest.sh dist/manifest.json",
+    "audit:lockdown-ids": "node tools/audit-lockdown-ids.js dist",
     "test:integration": "npm run build && playwright test"
   },
   "repository": {

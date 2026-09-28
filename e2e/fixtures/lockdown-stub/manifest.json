@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Herald e2e lockdown stub",
+  "description": "Stands in for a Proctorio lockdown build in Herald's end-to-end suite. Test only, never packaged.",
+  "version": "1.0.0",
+  "background": {
+    "service_worker": "stub-worker.js"
+  }
+}

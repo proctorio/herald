@@ -29,6 +29,7 @@ The upstream S3 page-script mechanism is the specific hazard. See `02-fork-delin
 **Package**
 - [ ] Production build, not the dev tree
 - [ ] Both audit scripts pass against the unpacked production build
+- [ ] `npm run audit:lockdown-ids` passes: no lockdown extension ID in plain text (`tools/package.js` also refuses to package otherwise)
 - [ ] `NOTICE` file included in the package
 - [ ] No source maps, no `.env`, no test fixtures, no `node_modules`
 - [ ] Version `1.0.0`

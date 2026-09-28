@@ -1,6 +1,7 @@
 import { brapi } from "./brapi.js";
 import { detectTabLanguage, getActiveTab, getTab, getAllFrames, assertExamSafeTabAllowed } from "./defaults.js";
 import { registerMessageListener } from "./messaging.js";
+import { registerExternalMessageListener } from "./external-messaging.js";
 import { contentHandlers } from "./content-handlers.js";
 
 brapi.runtime.onInstalled.addListener(function() 
@@ -25,6 +26,10 @@ var handlers = {
 };
 
 registerMessageListener("serviceWorker", handlers);
+
+// The lockdown channel. Registered at the top level so a message from a
+// lockdown build wakes the service worker.
+registerExternalMessageListener();
 
 /**
  * Installers
