@@ -10,9 +10,10 @@
  * package is assembled by the internal release pipeline from this zip plus
  * the internal icon tooling; no channel branding logic lives here.
  */
-import { readFileSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import AdmZip from "adm-zip";
+import { zipSync } from "fflate";
+import { zipEntries } from "./zip-entries.js";
 
 rmSync("build", { recursive: true, force: true });
 mkdirSync("build", { recursive: true });
@@ -40,8 +41,7 @@ for (const name of ["icon", "action"])
 const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf-8"));
 const artifact = `build/herald-${manifest.version}.zip`;
 
-const zip = new AdmZip();
-zip.addLocalFolder("dist", "", entry => !entry.endsWith(".map"));
-zip.writeZip(artifact);
+// Every folder and file in dist/ except source maps; see zip-entries.js.
+writeFileSync(artifact, zipSync(zipEntries("dist")));
 
 console.info(`${artifact} written`);
