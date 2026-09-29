@@ -89,20 +89,23 @@ export function immediate(get)
 
 export function getQueryString() 
 {
-	return location.search ? parseQueryString(location.search) : {};
+	return location.search ? parseQueryString(location.search) : Object.create(null);
 }
 
+// Keys come from the URL. Object.fromEntries defines each one as an own data
+// property, so "__proto__" never reaches the prototype setter, and the result
+// has no prototype, so no key shadows or reads an inherited member.
 export function parseQueryString(search) 
 {
 	if (search.charAt(0) != "?") throw new Error("Invalid argument");
-	var queryString = {};
-	search.slice(1).replaceAll("+", "%20").split("&").forEach(function(tuple) 
+	var entries = search.slice(1).replaceAll("+", "%20").split("&").map(function(tuple) 
 	{
 		var tokens = tuple.split("=");
-		queryString[decodeURIComponent(tokens[0])] = tokens[1] && decodeURIComponent(tokens[1]);
+		
+		return [decodeURIComponent(tokens[0]), tokens[1] && decodeURIComponent(tokens[1])];
 	});
 	
-	return queryString;
+	return Object.setPrototypeOf(Object.fromEntries(entries), null);
 }
 
 /**

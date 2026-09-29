@@ -202,6 +202,15 @@ describe("query strings", () =>
 		expect(() => parseQueryString("a=1")).toThrow("Invalid argument");
 	});
 
+	it("parseQueryString keeps every key as plain data on an object with no prototype", () =>
+	{
+		const query = parseQueryString("?__proto__=x&constructor=y&tab=5");
+		expect(Object.getPrototypeOf(query)).toBe(null);
+		expect(Object.keys(query)).toEqual(["__proto__", "constructor", "tab"]);
+		expect(query.constructor).toBe("y");
+		expect(parseQueryString("?tab=5").toString).toBeUndefined();
+	});
+
 	it("getQueryString parses location.search and returns empty for none", () =>
 	{
 		history.pushState({}, "", "/?tabId=42");

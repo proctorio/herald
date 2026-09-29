@@ -386,6 +386,19 @@ describe("east asian chunking", () =>
 
 		expect(speech.getInfo().texts.length).toBeGreaterThan(1);
 	});
+
+	it("treats only zh, ko and ja language subtags as east asian", () =>
+	{
+		const sentence = "word ".repeat(30).trim() + ".";
+		const chunksFor = lang => makeSpeech([sentence], {
+			lang,
+			voice: { voiceName: "Google US English" }
+		}).getInfo().texts;
+
+		expect(chunksFor("ja-JP").length).toBeGreaterThan(1);
+		expect(chunksFor("en-US")).toHaveLength(1);
+		for (const lang of ["kok-IN", "en-u-ca-japanese"]) expect(chunksFor(lang)).toEqual(chunksFor("en-US"));
+	});
 });
 
 describe("degenerate input", () =>

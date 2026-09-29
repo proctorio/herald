@@ -7,7 +7,7 @@ export function Speech(texts, options)
 {
 	options.rate = (options.rate || 1) * (isGoogleNative(options.voice) ? 0.9 : 1);
 
-	const isEastAsian = (/^zh|ko|ja/).test(options.lang);
+	const isEastAsian = (/^(zh|ko|ja)\b/).test(options.lang);
 	const punctuator = isEastAsian ? new EastAsianPunctuator() : new LatinPunctuator();
 
 	for (var i = 0; i < texts.length; i++) if ((/[\w)]$/).test(texts[i])) texts[i] += ".";
