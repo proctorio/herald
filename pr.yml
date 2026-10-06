@@ -1,7 +1,13 @@
+# Also run on every merge to main, not only on PRs (the build policy).
+# Advanced Security keeps alerts per branch: only a run on main publishes
+# main's CodeQL and dependency results, so without this a merged fix leaves
+# its alert active on main until someone queues a run by hand. batch folds
+# merges that land during a run into the next one.
 trigger:
+  batch: true
   branches:
-    exclude:
-    - '*'
+    include:
+    - main
 
 resources:
   repositories:
