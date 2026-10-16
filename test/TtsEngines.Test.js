@@ -37,6 +37,18 @@ function seedVoices()
 	for (const voice of VOICES) chrome.__tts.voices.push({ ...voice });
 }
 
+/**
+ * @description Delivers the final event chrome.tts sends an utterance when a stop()
+ * or speak() that did not come from Herald's engine ends it.
+ *
+ * @param {Object} utterance - The chrome.tts fake's record of the utterance.
+ * @param {string} type - The final event type, interrupted or cancelled.
+ */
+function interruptFromOutside(utterance, type)
+{
+	utterance.options.onEvent({ type });
+}
+
 describe("BrowserTtsEngine", () =>
 {
 	it("passes text and options to chrome.tts and relays events", async() =>
@@ -63,6 +75,80 @@ describe("BrowserTtsEngine", () =>
 		await new Promise(resolve => setTimeout(resolve, 0));
 
 		expect(chrome.__tts.utterances[0].options.voiceName).toBe("Fred");
+	});
+
+	it("asks chrome.tts for the final interrupted and cancelled events", async() =>
+	{
+		const engine = new BrowserTtsEngine();
+		engine.speak("x", { voice: { voiceName: "Alpha English Offline" } }, () => null);
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(chrome.__tts.utterances[0].options.desiredEventTypes).toEqual(expect.arrayContaining(["interrupted", "cancelled"]));
+	});
+
+	it("reports an interrupt it did not cause as an interrupted event", async() =>
+	{
+		const engine = new BrowserTtsEngine();
+		const events = [];
+		chrome.__tts.eventScript = [{ type: "start" }];
+		engine.speak("x", { voice: { voiceName: "Alpha English Offline" } }, event => events.push(event.type));
+		await new Promise(resolve => setTimeout(resolve, 0));
+		interruptFromOutside(chrome.__tts.utterances[0], "interrupted");
+
+		expect(events).toEqual(["start", "interrupted"]);
+	});
+
+	it("reports a cancelled utterance as interrupted too", async() =>
+	{
+		const engine = new BrowserTtsEngine();
+		const events = [];
+		chrome.__tts.eventScript = [{ type: "start" }];
+		engine.speak("x", { voice: { voiceName: "Alpha English Offline" } }, event => events.push(event.type));
+		await new Promise(resolve => setTimeout(resolve, 0));
+		interruptFromOutside(chrome.__tts.utterances[0], "cancelled");
+
+		expect(events).toEqual(["start", "interrupted"]);
+	});
+
+	it("stays silent about an interrupt its own stop() caused", async() =>
+	{
+		const engine = new BrowserTtsEngine();
+		const events = [];
+		chrome.__tts.eventScript = [{ type: "start" }];
+		engine.speak("x", { voice: { voiceName: "Alpha English Offline" } }, event => events.push(event.type));
+		await new Promise(resolve => setTimeout(resolve, 0));
+		engine.stop();
+		interruptFromOutside(chrome.__tts.utterances[0], "interrupted");
+		interruptFromOutside(chrome.__tts.utterances[0], "cancelled");
+
+		expect(events).toEqual(["start"]);
+	});
+
+	it("stays silent about the interrupt its own next speak() caused", async() =>
+	{
+		const engine = new BrowserTtsEngine();
+		const events = [];
+		chrome.__tts.eventScript = [{ type: "start" }];
+		engine.speak("first", { voice: { voiceName: "Alpha English Offline" } }, event => events.push(event.type));
+		engine.speak("second", { voice: { voiceName: "Alpha English Offline" } }, () => null);
+		await new Promise(resolve => setTimeout(resolve, 0));
+		interruptFromOutside(chrome.__tts.utterances[0], "interrupted");
+
+		expect(events).toEqual(["start"]);
+	});
+
+	it("still reports an outside interrupt on a newer utterance after an earlier stop()", async() =>
+	{
+		const engine = new BrowserTtsEngine();
+		const events = [];
+		chrome.__tts.eventScript = [{ type: "start" }];
+		engine.speak("first", { voice: { voiceName: "Alpha English Offline" } }, () => null);
+		engine.stop();
+		engine.speak("second", { voice: { voiceName: "Alpha English Offline" } }, event => events.push(event.type));
+		await new Promise(resolve => setTimeout(resolve, 0));
+		interruptFromOutside(chrome.__tts.utterances[1], "interrupted");
+
+		expect(events).toEqual(["start", "interrupted"]);
 	});
 
 	it("renames compact offline voices on mac", async() =>
@@ -104,17 +190,63 @@ describe("WebSpeechEngine", () =>
 		expect(events[1].charIndex).toBe(8);
 	});
 
-	it("suppresses canceled errors but relays real ones", () =>
+	it("relays real errors", () =>
+	{
+		const engine = new WebSpeechEngine();
+		const events = [];
+		engine.speak("x", { voice: {} }, event => events.push(event));
+		speechSynthesis.__state.queue[0].onerror({ error: "synthesis-failed" });
+
+		expect(events).toHaveLength(1);
+		expect(events[0].type).toBe("error");
+		expect(events[0].error.message).toBe("synthesis-failed");
+	});
+
+	it.each(["canceled", "interrupted"])("reports an outside %s as an interrupted event", error =>
+	{
+		const engine = new WebSpeechEngine();
+		const events = [];
+		engine.speak("x", { voice: {} }, event => events.push(event));
+		speechSynthesis.__state.queue[0].onerror({ error });
+
+		expect(events.map(e => e.type)).toEqual(["interrupted"]);
+	});
+
+	it("stays silent about a cancel its own stop() caused", () =>
 	{
 		const engine = new WebSpeechEngine();
 		const events = [];
 		engine.speak("x", { voice: {} }, event => events.push(event));
 		const utter = speechSynthesis.__state.queue[0];
+		engine.stop();
+		utter.onerror({ error: "interrupted" });
 		utter.onerror({ error: "canceled" });
-		utter.onerror({ error: "synthesis-failed" });
 
-		expect(events.filter(e => e.type == "error")).toHaveLength(1);
-		expect(events[0].error.message).toBe("synthesis-failed");
+		expect(events).toEqual([]);
+	});
+
+	it("stays silent about the cancel its own next speak() caused", () =>
+	{
+		const engine = new WebSpeechEngine();
+		const events = [];
+		engine.speak("first", { voice: {} }, event => events.push(event));
+		const first = speechSynthesis.__state.queue[0];
+		engine.speak("second", { voice: {} }, () => null);
+		first.onerror({ error: "canceled" });
+
+		expect(events).toEqual([]);
+	});
+
+	it("still reports an outside cancel on a newer utterance after an earlier stop()", () =>
+	{
+		const engine = new WebSpeechEngine();
+		const events = [];
+		engine.speak("first", { voice: {} }, () => null);
+		engine.stop();
+		engine.speak("second", { voice: {} }, event => events.push(event));
+		speechSynthesis.__state.queue[0].onerror({ error: "interrupted" });
+
+		expect(events.map(e => e.type)).toEqual(["interrupted"]);
 	});
 
 	it("stop cancels speech and mutes the end event", async() =>
@@ -258,6 +390,20 @@ describe("TimeoutTtsEngine", () =>
 		expect(events.map(e => e.type)).toEqual(["start", "end"]);
 		expect(events[1].charIndex).toBe(4);
 		expect(base.stops).toBe(1);
+	});
+
+	it("ends on an interrupted event and never generates an end after it", async() =>
+	{
+		const base = makeBase();
+		const engine = new TimeoutTtsEngine(base, 1000, 5000);
+		const events = [];
+		engine.speak("text", {}, event => events.push(event.type));
+		base.onEvent({ type: "start" });
+		base.onEvent({ type: "interrupted" });
+		await vi.advanceTimersByTimeAsync(5001);
+
+		expect(events).toEqual(["start", "interrupted"]);
+		expect(base.stops).toBe(0);
 	});
 });
 

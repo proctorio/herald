@@ -251,6 +251,11 @@ export function Speech(texts, options)
 							cmd$.next({name: "forward"});
 						}
 						break;
+					case "interrupted":
+						// something other than Herald stopped the speech: park on this chunk,
+						// and play() will speak it again from its start
+						playbackState$.next("paused");
+						break;
 				}
 			},
 			complete: () => 
@@ -344,13 +349,16 @@ export function Speech(texts, options)
 
 	function makePlaybackLegacy(text) 
 	{
+		// set when the engine reports that something other than Herald ended the speech
+		let interrupted = false;
+		
 		return playbackState$.pipe(
 			rxjs.distinctUntilChanged(),
 			rxjs.scan((playing$, state) => 
 			{
 				if (state == "resumed") 
 				{
-					if (playing$) 
+					if (playing$ && !interrupted) 
 					{
 						engine.resume();
 						
@@ -360,10 +368,15 @@ export function Speech(texts, options)
 					{
 						return new rxjs.Observable(observer => 
 						{
+							interrupted = false;
 							engine.speak(text, options, event => 
 							{
 								if (event.type == "error") observer.error(event.error);
-								else observer.next(event);
+								else 
+								{
+									if (event.type == "interrupted") interrupted = true;
+									observer.next(event);
+								}
 							});
 						});
 					}
@@ -372,6 +385,9 @@ export function Speech(texts, options)
 				{
 					if (playing$) 
 					{
+						// the speech is already gone, so the engine has nothing of ours to pause or stop
+						if (interrupted) return null;
+						
 						if (isGoogleNative(options.voice) || isChromeOSNative(options.voice)) 
 						{
 							engine.stop();
@@ -396,7 +412,11 @@ export function Speech(texts, options)
 			{
 				if (playing$) 
 				{
-					return playing$.pipe(rxjs.finalize(() => engine.stop()));
+					return playing$.pipe(rxjs.finalize(() => 
+					{
+						// an interrupted utterance is already gone, so there is nothing of ours to stop
+						if (!interrupted) engine.stop();
+					}));
 				}
 				else 
 				{

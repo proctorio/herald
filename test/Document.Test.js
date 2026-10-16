@@ -356,6 +356,21 @@ describe("Doc active controls", () =>
 		expect(onEnd).not.toHaveBeenCalled();
 	});
 
+	it("waits paused after an outside interrupt and replays the chunk on play", async() =>
+	{
+		const { doc, onEnd } = await makeActiveDoc();
+		chrome.__tts.utterances[0].options.onEvent({ type: "interrupted" });
+
+		expect(await doc.getState()).toBe("PAUSED");
+		expect(onEnd).not.toHaveBeenCalled();
+
+		await doc.play();
+		await new Promise(resolve => setTimeout(resolve, 10));
+
+		expect(chrome.__tts.utterances).toHaveLength(2);
+		expect(chrome.__tts.utterances[1].text).toBe(chrome.__tts.utterances[0].text);
+	});
+
 	it("seeks through the active speech", async() =>
 	{
 		const { doc } = await makeActiveDoc();

@@ -76,7 +76,7 @@ interface Options {
 }
 
 interface Event {
-  type: string
+  type: string  // start, end, error, or interrupted: something other than Herald stopped the speech
 }
 
 interface Voice {
@@ -93,8 +93,17 @@ interface TtsEngine {
 export function BrowserTtsEngine() 
 {
 	brapi.tts.stop();    // workaround: chrome.tts.speak doesn't work first time on cold start for some reason
+
+	// chrome.tts reports a stop() or a newer speak() as "interrupted" without saying who
+	// made the call. Herald marks the utterances it ends itself and relays only the other
+	// interrupts, so a stop or speak from elsewhere (another part of the extension, say)
+	// can't leave the player waiting on speech that is gone.
+	let current;
 	this.speak = function(text, options, onEvent) 
 	{
+		const utterance = {ours: false};
+		if (current) current.ours = true;
+		current = utterance;
 		brapi.tts.speak(text, {
 			voiceName: options.voice.voiceId || options.voice.voiceName,
 			lang: options.lang,
@@ -102,11 +111,19 @@ export function BrowserTtsEngine()
 			pitch: options.pitch,
 			volume: options.volume,
 			requiredEventTypes: ["start", "end"],
-			desiredEventTypes: ["start", "end", "error"],
-			onEvent: onEvent
+			desiredEventTypes: ["start", "end", "error", "interrupted", "cancelled"],
+			onEvent: event =>
+			{
+				if (event.type != "interrupted" && event.type != "cancelled") onEvent(event);
+				else if (!utterance.ours) onEvent({type: "interrupted"});
+			}
 		});
 	};
-	this.stop = brapi.tts.stop;
+	this.stop = function()
+	{
+		if (current) current.ours = true;
+		brapi.tts.stop();
+	};
 	this.pause = brapi.tts.pause;
 	this.resume = brapi.tts.resume;
 	this.isSpeaking = brapi.tts.isSpeaking;
@@ -133,8 +150,12 @@ export function BrowserTtsEngine()
 export function WebSpeechEngine() 
 {
 	var utter;
-	this.speak = function(text, options, onEvent) 
+	let current;    // the utterance Herald spoke last; see BrowserTtsEngine
+	this.speak = function(text, options, onEvent)
 	{
+		const utterance = {ours: false};
+		if (current) current.ours = true;    // the cancel() below ends the previous utterance
+		current = utterance;
 		utter = new SpeechSynthesisUtterance();
 		utter.text = text;
 		utter.voice = options.voice;
@@ -148,7 +169,13 @@ export function WebSpeechEngine()
 																																				charIndex: text.length});
 		utter.onerror = function(event) 
 		{
-			if (event.error == "canceled" || event.error == "interrupted") return;
+			if (event.error == "canceled" || event.error == "interrupted")
+			{
+				// a cancel Herald made stays silent; anyone else's ends this playback
+				if (!utterance.ours) onEvent({type: "interrupted"});
+
+				return;
+			}
 			onEvent({type: "error",
 												error: new Error(event.error)});
 		};
@@ -157,6 +184,7 @@ export function WebSpeechEngine()
 	};
 	this.stop = function() 
 	{
+		if (current) current.ours = true;
 		if (utter) utter.onend = null;
 		speechSynthesis.cancel();
 	};
@@ -244,7 +272,7 @@ export function TimeoutTtsEngine(baseEngine, startTimeout, endTimeout)
 				)),
 			rxjs.catchError(error => rxjs.of({type: "error",
 																																					error})),
-			rxjs.takeWhile(event => event.type != "end" && event.type != "error", true)
+			rxjs.takeWhile(event => event.type != "end" && event.type != "error" && event.type != "interrupted", true)
 		).subscribe(onEvent);
 	};
 	this.stop = function() 

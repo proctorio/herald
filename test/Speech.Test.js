@@ -6,6 +6,7 @@
  */
 import { vi } from "vitest";
 import { Speech } from "../src/js/speech.js";
+import { browserTtsEngine } from "../src/js/tts-engines.js";
 import { splitChunkIntoParagraphs } from "../src/js/paragraphs.js";
 
 /**
@@ -195,6 +196,156 @@ describe("playback", () =>
 
 		expect(speech.canForward()).toBe(true);
 		expect(speech.canRewind()).toBe(false);
+	});
+});
+
+describe("outside interruption", () =>
+{
+	const paragraphA = ("alpha ".repeat(25) + "end.").trim();
+	const paragraphB = ("beta ".repeat(25) + "end.").trim();
+
+	/**
+	 * @description Starts a speech whose first chunk is speaking, then lets the
+	 * start event settle.
+	 *
+	 * @param {Object} [options] - Option overrides.
+	 * @return {Promise<Speech>} - The playing speech.
+	 */
+	async function startPlaying(options)
+	{
+		chrome.__tts.eventScript = [{ type: "start" }];
+		const speech = makeSpeech([paragraphA, paragraphB], options);
+		speech.play();
+		await waitForUtterances(1);
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		return speech;
+	}
+
+	/**
+	 * @description Delivers the final event chrome.tts sends when a stop() or speak()
+	 * that did not come from Herald's engine ends the utterance.
+	 *
+	 * @param {number} [index] - Which utterance the event is for.
+	 */
+	function interruptFromOutside(index = 0)
+	{
+		chrome.__tts.utterances[index].options.onEvent({ type: "interrupted" });
+	}
+
+	it("parks on the interrupted chunk instead of hanging as PLAYING", async() =>
+	{
+		const speech = await startPlaying();
+		const onEnd = vi.fn();
+		speech.onEnd = onEnd;
+		expect(await speech.getState()).toBe("PLAYING");
+		interruptFromOutside();
+
+		expect(await speech.getState()).toBe("PAUSED");
+		expect(speech.getInfo().position.index).toBe(0);
+		expect(chrome.__tts.utterances).toHaveLength(1);
+		expect(onEnd).not.toHaveBeenCalled();
+	});
+
+	it("speaks the interrupted chunk again from its start on play", async() =>
+	{
+		const speech = await startPlaying();
+		interruptFromOutside();
+		speech.play();
+		await waitForUtterances(2);
+
+		expect(chrome.__tts.utterances).toHaveLength(2);
+		expect(chrome.__tts.utterances[1].text).toBe(chrome.__tts.utterances[0].text);
+		expect(await speech.getState()).toBe("PLAYING");
+	});
+
+	it("pauses the engine again after a replay", async() =>
+	{
+		const speech = await startPlaying();
+		interruptFromOutside();
+		speech.play();
+		await waitForUtterances(2);
+		chrome.__tts.paused = false;
+		speech.pause();
+
+		expect(chrome.__tts.paused).toBe(true);
+	});
+
+	it("leaves the engine alone for the utterance that is already gone", async() =>
+	{
+		const speech = await startPlaying();
+		chrome.__tts.stopped = false;
+		chrome.__tts.paused = false;
+		interruptFromOutside();
+		speech.stop();
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(chrome.__tts.stopped).toBe(false);
+		expect(chrome.__tts.paused).toBe(false);
+	});
+
+	it("speaks again instead of resuming when the interrupt arrives while paused", async() =>
+	{
+		const speech = await startPlaying();
+		speech.pause();
+		expect(chrome.__tts.paused).toBe(true);
+		interruptFromOutside();
+		speech.play();
+		await waitForUtterances(2);
+
+		expect(chrome.__tts.utterances).toHaveLength(2);
+		expect(chrome.__tts.utterances[1].text).toBe(chrome.__tts.utterances[0].text);
+	});
+
+	it("does not stop the engine when stopped after an interrupt that arrived while paused", async() =>
+	{
+		const speech = await startPlaying();
+		speech.pause();
+		chrome.__tts.stopped = false;
+		interruptFromOutside();
+		speech.stop();
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(chrome.__tts.stopped).toBe(false);
+	});
+
+	it("does not take the player's own engine stop for an outside interrupt", async() =>
+	{
+		const speech = await startPlaying();
+		speech.pause();
+		browserTtsEngine.stop();
+		interruptFromOutside();
+		speech.play();
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(chrome.__tts.utterances).toHaveLength(1);
+		expect(chrome.__tts.paused).toBe(false);
+	});
+
+	describe("with a google native voice", () =>
+	{
+		beforeEach(() =>
+		{
+			vi.useFakeTimers();
+		});
+
+		afterEach(() =>
+		{
+			vi.useRealTimers();
+		});
+
+		it("does not skip to the next chunk when the end timer runs out", async() =>
+		{
+			chrome.__tts.eventScript = [{ type: "start" }];
+			const speech = makeSpeech([paragraphA, paragraphB], { voice: { voiceName: "Google US English" } });
+			speech.play();
+			await vi.advanceTimersByTimeAsync(10);
+			interruptFromOutside();
+			await vi.advanceTimersByTimeAsync(20000);
+
+			expect(chrome.__tts.utterances).toHaveLength(1);
+			expect(await speech.getState()).toBe("PAUSED");
+		});
 	});
 });
 
