@@ -2,7 +2,7 @@ import { brapi } from "./brapi.js";
 import { detectTabLanguage, getActiveTab, getTab, getAllFrames, assertExamSafeTabAllowed } from "./defaults.js";
 import { registerMessageListener } from "./messaging.js";
 import { registerExternalMessageListener } from "./external-messaging.js";
-import { startLockdownRead, stopLockdownRead, pauseLockdownRead, resumeLockdownRead, getLockdownReadState } from "./lockdown-read.js";
+import { claimLockdownRead, startLockdownRead, stopLockdownRead, pauseLockdownRead, resumeLockdownRead, getLockdownReadState } from "./lockdown-read.js";
 import { contentHandlers } from "./content-handlers.js";
 
 brapi.runtime.onInstalled.addListener(function() 
@@ -37,11 +37,14 @@ registerExternalMessageListener({
 
 // A lockdown read replaces whatever Herald is reading. The player is stopped
 // with a runtime message and its frame left in place: tearing it down would
-// run script in a page, and a lockdown read never touches one.
+// run script in a page, and a lockdown read never touches one. The read is
+// claimed before that stop, so a lockdown stop sent right after readSelection
+// still cancels it, keeping the channel's message order.
 async function readLockdownSelection(text)
 {
+	const seq = claimLockdownRead();
 	await stop().catch(() => null);
-	await startLockdownRead(text);
+	await startLockdownRead(text, seq);
 }
 
 /**

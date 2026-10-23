@@ -26,15 +26,23 @@ const START_GRACE_MS = 10 * 1000;
 
 const FINAL_EVENTS = ["end", "error", "interrupted", "cancelled"];
 
-// Bumped by every start and stop request. A start whose voice lookup is
-// overtaken by a newer request gives up instead of speaking stale text.
+// Bumped by every claimed read and every stop. A read checks it after its
+// voice lookup and again after writing its record, so a stop or a newer read
+// that arrives at any point before it speaks cancels it.
 let requestSeq = 0;
+
+// Claims the next lockdown read. Claim before any wait that comes ahead of
+// startLockdownRead (events.js stops the player first), so a stop that
+// arrives during that wait still cancels this read.
+export function claimLockdownRead()
+{
+	return ++requestSeq;
+}
 
 // Speaks text as a lockdown read, replacing any lockdown read in progress.
 // Throws error_no_voice when no local voice fits; the caller logs it.
-export async function startLockdownRead(text)
+export async function startLockdownRead(text, seq = claimLockdownRead())
 {
-	const seq = ++requestSeq;
 	const settings = await getSettings();
 	const lang = await detectTextLanguage(text) || uiLanguage();
 	const voices = labelMacVoices(await new Promise(f => brapi.tts.getVoices(f)) || [], (await brapi.runtime.getPlatformInfo()).os);
@@ -57,6 +65,15 @@ export async function startLockdownRead(text)
 																	startedAt: Date.now(),
 																	paused: false,
 																	stopOnPause});
+
+	// a stop that came during the write found no record, or removed this one:
+	// either way this read is over, so it drops its record and stays silent
+	if (seq != requestSeq)
+	{
+		await clearState(id);
+
+		return;
+	}
 
 	// stop() also un-pauses the channel, which would otherwise hold the new utterance
 	brapi.tts.stop();

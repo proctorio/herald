@@ -292,6 +292,35 @@ describe("lockdown reads in the service worker", () =>
 		ttsStop.mockRestore();
 	});
 
+	it("honors a stop sent right after readSelection, while Herald is still stopping its player", async() =>
+	{
+		const player = recordingPlayer();
+
+		expect(fromLockdown("readSelection", { tabId: 1,
+																																									text: "Question one" })).toEqual(ACCEPTED);
+		expect(fromLockdown("stop")).toEqual({ v: 1,
+																																									ok: true,
+																																									type: "stop" });
+		await settle();
+
+		expect(player.stop).toBe(1);
+		expect(chrome.__tts.utterances).toHaveLength(0);
+		expect(await chrome.storage.session.get("lockdownRead")).toEqual({});
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "STOPPED" });
+	});
+
+	it("still speaks a readSelection sent right after a stop", async() =>
+	{
+		recordingPlayer();
+		fromLockdown("stop");
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+
+		expect(chrome.__tts.utterances.map(u => u.text)).toEqual(["Question one"]);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PLAYING" });
+	});
+
 	it("lets the student's own read replace a lockdown read", async() =>
 	{
 		const player = recordingPlayer();

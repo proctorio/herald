@@ -5,7 +5,7 @@
  * a service worker restart.
  */
 import { vi } from "vitest";
-import { startLockdownRead, stopLockdownRead, pauseLockdownRead, resumeLockdownRead, getLockdownReadState } from "../src/js/lockdown-read.js";
+import { claimLockdownRead, startLockdownRead, stopLockdownRead, pauseLockdownRead, resumeLockdownRead, getLockdownReadState } from "../src/js/lockdown-read.js";
 import { defaults } from "../src/js/defaults.js";
 
 const VOICES = [
@@ -85,6 +85,33 @@ async function ageRecord(changes)
 function setSpeaking(speaking)
 {
 	chrome.__tts.speaking = speaking;
+}
+
+/**
+ * @description Holds the next session storage write until released, so a test
+ * can act while a read is writing its record.
+ *
+ * @return {Object} - Started resolves when the write begins; release finishes
+ * it; restore removes the hold.
+ */
+function holdNextSessionWrite()
+{
+	const session = chrome.storage.session;
+	const write = session.set;
+	const hold = {};
+	let begin = null;
+	hold.started = new Promise(resolve =>
+	{
+		begin = resolve;
+	});
+	const spy = vi.spyOn(session, "set").mockImplementationOnce(items => new Promise(resolve =>
+	{
+		hold.release = () => resolve(write.call(session, items));
+		begin();
+	}));
+	hold.restore = () => spy.mockRestore();
+
+	return hold;
 }
 
 describe("startLockdownRead", () =>
@@ -233,6 +260,33 @@ describe("startLockdownRead", () =>
 
 		expect(chrome.__tts.utterances).toHaveLength(0);
 		expect(await getLockdownReadState()).toBeNull();
+	});
+
+	it("gives up when a stop arrives between its claim and its start", async() =>
+	{
+		seedVoices();
+		const seq = claimLockdownRead();
+		await stopLockdownRead();
+		await startLockdownRead("Question one", seq);
+
+		expect(chrome.__tts.utterances).toHaveLength(0);
+		expect(await getLockdownReadState()).toBeNull();
+	});
+
+	it("gives up, leaving no record, when a stop arrives while it writes its record", async() =>
+	{
+		seedVoices();
+		const hold = holdNextSessionWrite();
+		const pending = startLockdownRead("Question one");
+		await hold.started;
+		const stopped = stopLockdownRead();
+		hold.release();
+		await Promise.all([pending, stopped]);
+		hold.restore();
+		await settle();
+
+		expect(chrome.__tts.utterances).toHaveLength(0);
+		expect(await chrome.storage.session.get("lockdownRead")).toEqual({});
 	});
 
 	it("lets a newer read overtake an older one still looking up its voice", async() =>
