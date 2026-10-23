@@ -13,6 +13,7 @@
 export function makeChrome()
 {
 	const storageData = {};
+	const sessionData = {};
 	const storageListeners = [];
 	const storageAreaListeners = [];
 	const messageListeners = [];
@@ -47,6 +48,7 @@ export function makeChrome()
 		__reset()
 		{
 			for (const key of Object.keys(storageData)) delete storageData[key];
+			for (const key of Object.keys(sessionData)) delete sessionData[key];
 			storageListeners.length = 0;
 			storageAreaListeners.length = 0;
 
@@ -296,6 +298,54 @@ export function makeChrome()
 				addListener(fn)
 				{
 					storageListeners.push(fn);
+				}
+			},
+
+			// In-memory area that, like Chrome's, outlives a service worker restart
+			// but not a browser restart. Promise form only, as Herald uses it.
+			session: {
+				/**
+				 * @description Reads keys from the session store.
+				 *
+				 * @param {(Array<string>|string|null)} keys - Keys to read.
+				 * @return {Promise<object>} - The stored subset.
+				 */
+				get(keys)
+				{
+					const names = (keys === null || typeof keys === "undefined") ? Object.keys(sessionData) : Array.isArray(keys) ? keys : [keys];
+					const result = {};
+					for (const name of names)
+					{
+						if (name in sessionData) result[name] = structuredClone(sessionData[name]);
+					}
+
+					return Promise.resolve(result);
+				},
+
+				/**
+				 * @description Writes items to the session store.
+				 *
+				 * @param {Object} items - Key value pairs to store.
+				 * @return {Promise<void>} - Resolves when stored.
+				 */
+				set(items)
+				{
+					for (const [key, value] of Object.entries(items)) sessionData[key] = structuredClone(value);
+
+					return Promise.resolve();
+				},
+
+				/**
+				 * @description Removes keys from the session store.
+				 *
+				 * @param {(Array<string>|string)} keys - Keys to remove.
+				 * @return {Promise<void>} - Resolves when removed.
+				 */
+				remove(keys)
+				{
+					for (const key of Array.isArray(keys) ? keys : [keys]) delete sessionData[key];
+
+					return Promise.resolve();
 				}
 			}
 		},

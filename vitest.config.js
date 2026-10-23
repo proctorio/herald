@@ -31,6 +31,7 @@ export default defineConfig({
 				"src/js/defaults.js",
 				"src/js/messaging.js",
 				"src/js/external-messaging.js",
+				"src/js/lockdown-read.js",
 				"src/js/lockdown-ids.js",
 				"src/js/sha256.js",
 				"src/js/content-handlers.js",

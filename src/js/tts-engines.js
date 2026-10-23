@@ -1,6 +1,6 @@
 import { brapi } from "./brapi.js";
 import * as rxjs from "./vendor/rxjs.js";
-import { promiseTimeout, languageTable, getSetting, parseLang, findVoiceByName, findVoiceByLang, isOfflineVoice, isGoogleNative } from "./defaults.js";
+import { promiseTimeout, getSetting, selectSpeechVoice, labelMacVoices } from "./defaults.js";
 
 export var browserTtsEngine = brapi.tts ? new BrowserTtsEngine() : (typeof speechSynthesis != "undefined" ? new WebSpeechEngine() : new DummyTtsEngine());
 
@@ -11,34 +11,18 @@ export const voices$ = rxjs.defer(() => browserTtsEngine.getVoices()).pipe(rxjs.
 
 export async function getSpeechVoice(voiceName, lang) 
 {
-	let voices = await rxjs.firstValueFrom(voices$);
+	const voices = await rxjs.firstValueFrom(voices$);
 
-	// exam-safe mode never selects a network voice, even a pinned one: the
-	// browser can expose remote voices (for example Google network voices)
-	// through chrome.tts, and reading exam text must stay on-device
-	if (await getSetting("examSafeMode")) voices = voices.filter(v => !v.remote);
-	var voice;
+	return selectSpeechVoice(voices, {
+		voiceName,
+		lang,
+		preferredVoices: lang ? (await getSetting("preferredVoices")) || {} : {},
 
-	// if a specific voice is indicated
-	if (voiceName) voice = findVoiceByName(voices, voiceName);
-
-	// if no specific voice indicated, but a preferred voice was configured for the language
-	if (!voice && lang) 
-	{
-		const preferredVoiceByLang = (await getSetting("preferredVoices")) || {};
-		voiceName = preferredVoiceByLang[parseLang(lang).lang];
-		if (voiceName) voice = findVoiceByName(voices, voiceName);
-	}
-
-	// otherwise, auto-select in order: offline, native, any
-	if (!voice && lang) 
-	{
-		voice = findVoiceByLang(voices.filter(isOfflineVoice), lang) ||
-      findVoiceByLang(voices.filter(isGoogleNative), lang) ||
-      findVoiceByLang(voices, lang);
-	}
-	
-	return voice;
+		// exam-safe mode never selects a network voice, even a pinned one: the
+		// browser can expose remote voices (for example Google network voices)
+		// through chrome.tts, and reading exam text must stay on-device
+		localOnly: await getSetting("examSafeMode")
+	});
 }
 
 // synthesized audio cache
@@ -131,19 +115,8 @@ export function BrowserTtsEngine()
 	{
 		const voices = await new Promise(f => brapi.tts.getVoices(f)) || [];
 		const platform = await brapi.runtime.getPlatformInfo();
-		if (platform.os == "mac") 
-		{
-			for (const voice of voices) 
-			{
-				if (voice.remote == false && !voice.voiceName.includes(" ")) 
-				{
-					voice.voiceId = voice.voiceName;
-					voice.voiceName = "MacOS " + (languageTable.getNameFromCode(voice.lang) || voice.lang) + " [" + voice.voiceId + "]";
-				}
-			}
-		}
-		
-		return voices;
+
+		return labelMacVoices(voices, platform.os);
 	};
 }
 

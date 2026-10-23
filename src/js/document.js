@@ -1,15 +1,8 @@
 import { brapi } from "./brapi.js";
 import * as rxjs from "./vendor/rxjs.js";
-import { config, defaults, getSettings, getSetting, wait, extraAction, truncateRepeatedChars } from "./defaults.js";
+import { config, defaults, getSettings, getSetting, wait, extraAction, truncateRepeatedChars, detectTextLanguage } from "./defaults.js";
 import { getSpeechVoice } from "./tts-engines.js";
 import { Speech } from "./speech.js";
-
-// Language detection confidence bar (finding F8): a detected language may
-// override the declared page language only when the sampled text is at
-// least detectMinChars long AND the browser reports the detection reliable
-// with the top candidate at or above detectMinPercentage.
-const detectMinChars = 100;
-const detectMinPercentage = 80;
 
 export function SimpleSource(texts, opts) 
 {
@@ -264,40 +257,12 @@ export function Doc(source, onEnd)
 		}
 	}
 
-	// Confidence bar for overriding a declared page language with a detected
-	// one (finding F8): the sample must be long enough, the browser must flag
-	// the detection reliable, and the top candidate must carry a dominant
-	// share of the sample. Anything weaker returns null, which keeps the
-	// declared language when one is present.
+	// A detected language overrides the declared page language only when it
+	// passes the confidence bar in detectTextLanguage (finding F8); anything
+	// weaker returns null, which keeps the declared language when one is present.
 	function detectLanguageOf(text)
 	{
-		if (text.length < detectMinChars)
-		{
-			// too little text for reliable detection, fall back to the declared page lang
-			return Promise.resolve(null);
-		}
-
-		return browserDetectLanguage(text);
-	}
-
-	function browserDetectLanguage(text)
-	{
-		if (!brapi.i18n.detectLanguage) return Promise.resolve(null);
-
-		return new Promise(function(fulfill)
-		{
-			brapi.i18n.detectLanguage(text, fulfill);
-		})
-			.then(function(result)
-			{
-				if (!result || !result.isReliable) return null;
-				var list = result.languages.filter(function(item) { return item.language != "und"; });
-				list.sort(function(a, b) { return b.percentage - a.percentage; });
-				var top = list[0];
-				if (!top || top.percentage < detectMinPercentage) return null;
-
-				return top.language;
-			});
+		return detectTextLanguage(text);
 	}
 
 	async function getSpeech(texts) 

@@ -2,6 +2,7 @@ import { brapi } from "./brapi.js";
 import { detectTabLanguage, getActiveTab, getTab, getAllFrames, assertExamSafeTabAllowed } from "./defaults.js";
 import { registerMessageListener } from "./messaging.js";
 import { registerExternalMessageListener } from "./external-messaging.js";
+import { startLockdownRead, stopLockdownRead, pauseLockdownRead, resumeLockdownRead, getLockdownReadState } from "./lockdown-read.js";
 import { contentHandlers } from "./content-handlers.js";
 
 brapi.runtime.onInstalled.addListener(function() 
@@ -29,7 +30,19 @@ registerMessageListener("serviceWorker", handlers);
 
 // The lockdown channel. Registered at the top level so a message from a
 // lockdown build wakes the service worker.
-registerExternalMessageListener();
+registerExternalMessageListener({
+	readSelection: readLockdownSelection,
+	stop: stopLockdownRead
+});
+
+// A lockdown read replaces whatever Herald is reading. The player is stopped
+// with a runtime message and its frame left in place: tearing it down would
+// run script in a page, and a lockdown read never touches one.
+async function readLockdownSelection(text)
+{
+	await stop().catch(() => null);
+	await startLockdownRead(text);
+}
 
 /**
  * Installers
@@ -208,8 +221,10 @@ var currentTask = {
 	}
 };
 
-async function playText(text, opts) 
+async function playText(text, opts)
 {
+	// the student's own read replaces a lockdown read, as a lockdown read replaces it
+	await stopLockdownRead();
 	const hasPlayer = await stop().then(res => res == true, err => false);
 	if (!hasPlayer) await injectPlayer(await getActiveTab());
 	await sendToPlayer({method: "playText",
@@ -257,6 +272,7 @@ async function playTab(tabId)
 		task.end();
 	}
 
+	await stopLockdownRead();
 	const hasPlayer = await stop().then(res => res == true, err => false);
 	if (!hasPlayer) await injectPlayer(tab);
 	await sendToPlayer({method: "playTab"});
@@ -305,6 +321,9 @@ function stop()
 // player liveness probe right before reusing or reinjecting the player.
 async function stopAndTeardown()
 {
+	// A lockdown read already stopped the player, and stopping it never
+	// touches a page, so there is nothing to tear down.
+	if (await stopLockdownRead()) return;
 	await stop();
 	try
 	{
@@ -330,41 +349,57 @@ async function stopAndTeardown()
 	}
 }
 
-function pause() 
+async function pause()
 {
+	if (await pauseLockdownRead()) return;
+
 	return sendToPlayer({method: "pause"});
 }
 
-function resume() 
+async function resume()
 {
+	if (await resumeLockdownRead()) return;
+
 	return sendToPlayer({method: "resume"});
 }
 
-async function getPlaybackState() 
+// A lockdown read reports only PLAYING or PAUSED: it has no text positions to
+// show, since it never touches the page.
+async function getPlaybackState()
 {
 	if (currentTask.isActive()) return {state: "LOADING"};
-	try 
+	const lockdownState = await getLockdownReadState();
+	if (lockdownState) return {state: lockdownState};
+	try
 	{
 		return await sendToPlayer({method: "getPlaybackState"}) || {state: "STOPPED"};
 	}
-	catch (err) 
+	catch (err)
 	{
 		return {state: "STOPPED"};
 	}
 }
 
-function forward() 
+// A lockdown read is one utterance, so forward, rewind and seek do nothing
+// while it plays.
+async function forward()
 {
+	if (await getLockdownReadState()) return;
+
 	return sendToPlayer({method: "forward"});
 }
 
-function rewind() 
+async function rewind()
 {
+	if (await getLockdownReadState()) return;
+
 	return sendToPlayer({method: "rewind"});
 }
 
-function seek(n, offset)
+async function seek(n, offset)
 {
+	if (await getLockdownReadState()) return;
+
 	return sendToPlayer({method: "seek",
 																						args: [n, offset]});
 }
