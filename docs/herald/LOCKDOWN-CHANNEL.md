@@ -153,6 +153,10 @@ Herald's own controls, wakes it. With no live record, `stop` does nothing.
 - `test/Events.Test.js`: the service worker wiring: a lockdown read stops
   Herald's player and touches no page, the student's own read survives a
   lockdown `stop`, and Herald's shortcuts drive a lockdown read.
+- `test/ServiceWorkerGraph.Test.js`: the service worker never loads
+  `tts-engines.js`. Loading it stops all of Herald's speech, and the worker
+  loads its modules again each time it wakes, also in the middle of a
+  lockdown read.
 - `test/Sha256.Test.js`: the hash against the FIPS 180-4 examples and
   node:crypto.
 - `e2e/LockdownChannel.Test.js`: real Chromium with two stub lockdown
