@@ -103,7 +103,7 @@ test.describe.serial("lockdown channel", () =>
 																																																																										ok: true,
 																																																																										type: "hello",
 																																																																										version,
-																																																																										types: ["hello"] } });
+																																																																										types: ["hello", "readSelection", "stop"] } });
 	});
 
 	test("Herald does not answer an extension that is not a lockdown build, whatever it sends", async() =>
@@ -136,8 +136,8 @@ test.describe.serial("lockdown channel", () =>
 
 	test("an unknown message type is refused", async() =>
 	{
-		const answers = await Promise.all(["readSelection", "announce", "examState", "getState"].map(type => send(launched.stubs.allowed, { v: 1,
-																																																																																																																																						type })));
+		const answers = await Promise.all(["announce", "examState", "getState"].map(type => send(launched.stubs.allowed, { v: 1,
+																																																																																																																					type })));
 		for (const answer of answers) expect(answer).toEqual(refused("unknown_type"));
 	});
 
@@ -156,6 +156,27 @@ test.describe.serial("lockdown channel", () =>
 		];
 		const answers = await Promise.all(malformed.map(message => send(launched.stubs.allowed, message)));
 		for (const answer of answers) expect(answer).toEqual(refused("malformed"));
+	});
+
+	test("readSelection and stop are accepted, and a bad readSelection or a stop without its tab is refused", async() =>
+	{
+		expect(await send(launched.stubs.allowed, { v: 1,
+																																														type: "readSelection",
+																																														payload: { tabId: 1,
+																																																									text: "Read this question aloud." } })).toEqual({ response: { v: 1,
+																																																																																																																							ok: true,
+																																																																																																																							type: "readSelection" } });
+		expect(await send(launched.stubs.allowed, { v: 1,
+																																														type: "stop",
+																																														payload: { tabId: 1 } })).toEqual({ response: { v: 1,
+																																																																																					ok: true,
+																																																																																					type: "stop" } });
+		expect(await send(launched.stubs.allowed, { v: 1,
+																																														type: "readSelection",
+																																														payload: { tabId: 1,
+																																																									text: "a".repeat(10001) } })).toEqual(refused("malformed"));
+		expect(await send(launched.stubs.allowed, { v: 1,
+																																														type: "stop" })).toEqual(refused("malformed"));
 	});
 
 	test("the channel never touched the page and no request left the browser", async() =>

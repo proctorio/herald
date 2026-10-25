@@ -275,6 +275,76 @@ export function findVoiceByLang(voices, lang)
 	return match.first || match.second || match.third || match.fourth || match.fifth || match.sixth;
 }
 
+// Picks the voice for a read, in order: the named voice, the preferred voice
+// configured for the language, then an offline, a Google native, or any voice
+// for the language. localOnly first drops network voices, so the text never
+// leaves the device. Shared by the player (getSpeechVoice) and the service
+// worker's lockdown reads, which cannot load the player's TTS engine.
+export function selectSpeechVoice(voices, {voiceName, lang, preferredVoices, localOnly})
+{
+	if (localOnly) voices = voices.filter(v => !v.remote);
+	var voice;
+	if (voiceName) voice = findVoiceByName(voices, voiceName);
+	if (!voice && lang)
+	{
+		const preferred = (preferredVoices || {})[parseLang(lang).lang];
+		if (preferred) voice = findVoiceByName(voices, preferred);
+	}
+	if (!voice && lang)
+	{
+		voice = findVoiceByLang(voices.filter(isOfflineVoice), lang) ||
+			findVoiceByLang(voices.filter(isGoogleNative), lang) ||
+			findVoiceByLang(voices, lang);
+	}
+
+	return voice;
+}
+
+// macOS reports its compact offline voices by a bare name ("Fred"). Herald
+// lists them as "MacOS English [Fred]" and speaks them by the bare name, kept
+// as voiceId.
+export function labelMacVoices(voices, os)
+{
+	if (os != "mac") return voices;
+	for (const voice of voices)
+	{
+		if (voice.remote == false && !voice.voiceName.includes(" "))
+		{
+			voice.voiceId = voice.voiceName;
+			voice.voiceName = "MacOS " + (languageTable.getNameFromCode(voice.lang) || voice.lang) + " [" + voice.voiceId + "]";
+		}
+	}
+
+	return voices;
+}
+
+// Language detection confidence bar (finding F8): a detected language counts
+// only when the text is at least detectMinChars long, the browser reports the
+// detection reliable, and the top candidate has at least detectMinPercentage.
+// Anything weaker returns null.
+const detectMinChars = 100;
+const detectMinPercentage = 80;
+
+export function detectTextLanguage(text)
+{
+	if (text.length < detectMinChars || !brapi.i18n.detectLanguage) return Promise.resolve(null);
+
+	return new Promise(function(fulfill)
+	{
+		brapi.i18n.detectLanguage(text, fulfill);
+	})
+		.then(function(result)
+		{
+			if (!result || !result.isReliable) return null;
+			var list = result.languages.filter(function(item) { return item.language != "und"; });
+			list.sort(function(a, b) { return b.percentage - a.percentage; });
+			var top = list[0];
+			if (!top || top.percentage < detectMinPercentage) return null;
+
+			return top.language;
+		});
+}
+
 /**
  * HELPERS
  */

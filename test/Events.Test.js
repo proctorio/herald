@@ -9,7 +9,22 @@
  */
 import { vi } from "vitest";
 import { registerMessageListener } from "../src/js/messaging.js";
+import { bgPageInvoke } from "../src/js/defaults.js";
 import { isTopFrameClick, isInjectionBlocked } from "../src/js/events.js";
+
+const { TEST_LOCKDOWN_ID } = vi.hoisted(() => ({
+	TEST_LOCKDOWN_ID: Array.from({ length: 32 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 16))).join("")
+}));
+
+// Lets a lockdown build generated for this run through the allowlist, as in
+// ExternalMessaging.Test.js. No real lockdown ID appears here.
+vi.mock("../src/js/lockdown-ids.js", async importOriginal =>
+{
+	const { createHash } = await import("node:crypto");
+	const actual = await importOriginal();
+
+	return { LOCKDOWN_ID_HASHES: Object.freeze([...actual.LOCKDOWN_ID_HASHES, createHash("sha256").update(TEST_LOCKDOWN_ID).digest("hex")]) };
+});
 
 /**
  * @description Lets the fire-and-forget context menu handler chain settle
@@ -125,6 +140,301 @@ describe("context menu read-selection", () =>
 		expect(calls.playText).toHaveLength(0);
 		expect(consoleError).toHaveBeenCalled();
 		consoleError.mockRestore();
+	});
+});
+
+describe("lockdown reads in the service worker", () =>
+{
+	const LOCKDOWN = { id: TEST_LOCKDOWN_ID,
+																				url: `chrome-extension://${TEST_LOCKDOWN_ID}/background.js` };
+
+	/**
+	 * @description Sends a lockdown channel message the way Chrome delivers it
+	 * to the listener events.js registered at import time.
+	 *
+	 * @param {string} type - The message type.
+	 * @param {Object} [payload] - The payload, omitted when absent.
+	 * @return {?Object} - The synchronous answer, if any.
+	 */
+	function fromLockdown(type, payload)
+	{
+		const message = { v: 1,
+																				type };
+		if (arguments.length > 1) message.payload = payload;
+		const sendResponse = vi.fn();
+		chrome.runtime.onMessageExternal.emit(message, LOCKDOWN, sendResponse);
+
+		return sendResponse.mock.calls.length ? sendResponse.mock.calls[0][0] : null;
+	}
+
+	/**
+	 * @description Registers a player endpoint that counts what Herald asks it
+	 * to do, and reports itself stopped.
+	 *
+	 * @return {Object} - The counts and the texts it was asked to play.
+	 */
+	function recordingPlayer()
+	{
+		const calls = { stop: 0,
+																		pause: 0,
+																		resume: 0,
+																		forward: 0,
+																		rewind: 0,
+																		seek: 0,
+																		playText: [] };
+		registerMessageListener("player", {
+			stop()
+			{
+				calls.stop++;
+
+				return true;
+			},
+			pause()
+			{
+				calls.pause++;
+			},
+			resume()
+			{
+				calls.resume++;
+			},
+			forward()
+			{
+				calls.forward++;
+			},
+			rewind()
+			{
+				calls.rewind++;
+			},
+			seek()
+			{
+				calls.seek++;
+			},
+			playText(text)
+			{
+				calls.playText.push(text);
+
+				return null;
+			},
+			getPlaybackState()
+			{
+				return { state: "STOPPED" };
+			}
+		});
+
+		return calls;
+	}
+
+	const ACCEPTED = { v: 1,
+																				ok: true,
+																				type: "readSelection" };
+
+	beforeEach(() =>
+	{
+		chrome.__tts.voices.push({ voiceName: "Local English",
+																													lang: "en-US",
+																													remote: false });
+		chrome.__tts.eventScript = [{ type: "start" }];
+	});
+
+	it("speaks a lockdown selection after stopping Herald's player, touching no page", async() =>
+	{
+		const player = recordingPlayer();
+
+		expect(fromLockdown("readSelection", { tabId: 1,
+																																									text: "Question one" })).toEqual(ACCEPTED);
+		await settle();
+
+		expect(player.stop).toBe(1);
+		expect(chrome.__tts.utterances.map(u => u.text)).toEqual(["Question one"]);
+		expect(chrome.__recorded.executeScript).toHaveLength(0);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PLAYING" });
+	});
+
+	it("speaks a lockdown selection when Herald has no player at all", async() =>
+	{
+		expect(fromLockdown("readSelection", { tabId: 1,
+																																									text: "Question one" })).toEqual(ACCEPTED);
+		await settle();
+
+		expect(chrome.__tts.utterances.map(u => u.text)).toEqual(["Question one"]);
+		expect(chrome.__recorded.executeScript).toHaveLength(0);
+	});
+
+	it("lets a read the student started from Herald survive a lockdown stop", async() =>
+	{
+		const player = recordingPlayer();
+		await bgPageInvoke("playText", ["The student's own read", {}]);
+		const ttsStop = vi.spyOn(chrome.tts, "stop");
+
+		expect(fromLockdown("stop", { tabId: 1 })).toEqual({ v: 1,
+																																																							ok: true,
+																																																							type: "stop" });
+		await settle();
+
+		expect(ttsStop).not.toHaveBeenCalled();
+		expect(player.stop).toBe(1);
+		expect(player.playText).toEqual(["The student's own read"]);
+		ttsStop.mockRestore();
+	});
+
+	it("ends a lockdown read on a lockdown stop", async() =>
+	{
+		recordingPlayer();
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+		const ttsStop = vi.spyOn(chrome.tts, "stop");
+		fromLockdown("stop", { tabId: 1 });
+		await settle();
+
+		expect(ttsStop).toHaveBeenCalledTimes(1);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "STOPPED" });
+		ttsStop.mockRestore();
+	});
+
+	it("honors a stop sent right after readSelection, while Herald is still stopping its player", async() =>
+	{
+		const player = recordingPlayer();
+
+		expect(fromLockdown("readSelection", { tabId: 1,
+																																									text: "Question one" })).toEqual(ACCEPTED);
+		expect(fromLockdown("stop", { tabId: 1 })).toEqual({ v: 1,
+																																																							ok: true,
+																																																							type: "stop" });
+		await settle();
+
+		expect(player.stop).toBe(1);
+		expect(chrome.__tts.utterances).toHaveLength(0);
+		expect(await chrome.storage.session.get("lockdownRead")).toEqual({});
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "STOPPED" });
+	});
+
+	it("leaves a lockdown read from another tab playing on a stop for this tab", async() =>
+	{
+		recordingPlayer();
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+		const ttsStop = vi.spyOn(chrome.tts, "stop");
+		fromLockdown("stop", { tabId: 2 });
+		await settle();
+
+		expect(ttsStop).not.toHaveBeenCalled();
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PLAYING" });
+		ttsStop.mockRestore();
+	});
+
+	it("lets tab 7's read, still in flight, start and speak through a stop for tab 9", async() =>
+	{
+		recordingPlayer();
+		fromLockdown("readSelection", { tabId: 7,
+																																		text: "Question one" });
+		fromLockdown("stop", { tabId: 9 });
+		await settle();
+
+		expect(chrome.__tts.utterances.map(u => u.text)).toEqual(["Question one"]);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PLAYING" });
+	});
+
+	it("still speaks a readSelection sent right after a stop", async() =>
+	{
+		recordingPlayer();
+		fromLockdown("stop", { tabId: 1 });
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+
+		expect(chrome.__tts.utterances.map(u => u.text)).toEqual(["Question one"]);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PLAYING" });
+	});
+
+	it("lets the student's own read replace a lockdown read", async() =>
+	{
+		const player = recordingPlayer();
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+		const ttsStop = vi.spyOn(chrome.tts, "stop");
+		await bgPageInvoke("playText", ["The student's own read", {}]);
+
+		expect(ttsStop).toHaveBeenCalled();
+		expect(player.playText).toEqual(["The student's own read"]);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "STOPPED" });
+		ttsStop.mockRestore();
+	});
+
+	it("lets the student's page read replace a lockdown read", async() =>
+	{
+		const calls = fakePlayer();
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+		const ttsStop = vi.spyOn(chrome.tts, "stop");
+		await bgPageInvoke("playTab", [1]);
+
+		expect(ttsStop).toHaveBeenCalled();
+		expect(calls.playTab).toHaveLength(1);
+		ttsStop.mockRestore();
+	});
+
+	it("drives a lockdown read with Herald's pause, play and stop shortcuts, never touching a page", async() =>
+	{
+		const player = recordingPlayer();
+		await chrome.storage.local.set({ sourceUri: "contentscript:1" });
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+
+		chrome.commands.onCommand.emit("pause");
+		await settle();
+		expect(chrome.__tts.paused).toBe(true);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PAUSED" });
+
+		chrome.commands.onCommand.emit("play");
+		await settle();
+		expect(chrome.__tts.paused).toBe(false);
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "PLAYING" });
+
+		chrome.commands.onCommand.emit("stop");
+		await settle();
+		expect(await bgPageInvoke("getPlaybackState")).toEqual({ state: "STOPPED" });
+		expect(chrome.__recorded.executeScript).toHaveLength(0);
+		expect(player).toMatchObject({ stop: 1,
+																																	pause: 0,
+																																	resume: 0 });
+	});
+
+	it("makes forward, rewind and seek do nothing during a lockdown read", async() =>
+	{
+		const player = recordingPlayer();
+		fromLockdown("readSelection", { tabId: 1,
+																																		text: "Question one" });
+		await settle();
+
+		await bgPageInvoke("forward");
+		await bgPageInvoke("rewind");
+		await bgPageInvoke("seek", [1]);
+
+		expect(player).toMatchObject({ forward: 0,
+																																	rewind: 0,
+																																	seek: 0 });
+	});
+
+	it("still sends pause, resume, forward and stop to the player when no lockdown read plays", async() =>
+	{
+		const player = recordingPlayer();
+		await chrome.storage.local.set({ sourceUri: "contentscript:1" });
+
+		await bgPageInvoke("pause");
+		await bgPageInvoke("resume");
+		await bgPageInvoke("forward");
+		await bgPageInvoke("stop");
+
+		expect(player).toMatchObject({ pause: 1,
+																																	resume: 1,
+																																	forward: 1,
+																																	stop: 1 });
+		expect(chrome.__recorded.executeScript).toHaveLength(1);
 	});
 });
 

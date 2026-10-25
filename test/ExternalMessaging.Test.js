@@ -6,7 +6,7 @@
  * extension ID appears here.
  */
 import { vi } from "vitest";
-import { handleExternalMessage, isLockdownSender, registerExternalMessageListener, MESSAGE_TYPES } from "../src/js/external-messaging.js";
+import { handleExternalMessage, isLockdownSender, registerExternalMessageListener, MESSAGE_TYPES, READ_SELECTION_MAX_LENGTH } from "../src/js/external-messaging.js";
 import MANIFEST from "../src/manifest.json";
 
 const { randomExtensionId, TEST_LOCKDOWN_ID } = vi.hoisted(() =>
@@ -39,7 +39,7 @@ const HELLO_ANSWER = { v: 1,
 																							ok: true,
 																							type: "hello",
 																							version: "0.0.0",
-																							types: ["hello"] };
+																							types: ["hello", "readSelection", "stop"] };
 
 /**
  * @description Builds the sender Chrome reports for a message from another
@@ -117,9 +117,9 @@ describe("handleExternalMessage", () =>
 		expect(handleExternalMessage(HELLO, LOCKDOWN_BUILD)).toEqual(HELLO_ANSWER);
 	});
 
-	it("supports only the hello handshake in this protocol version", () =>
+	it("supports hello, readSelection and stop in this protocol version", () =>
 	{
-		expect(MESSAGE_TYPES).toEqual(["hello"]);
+		expect(MESSAGE_TYPES).toEqual(["hello", "readSelection", "stop"]);
 	});
 
 	it.each(NOT_LOCKDOWN)("gives no answer at all to %s", (label, sender) =>
@@ -150,7 +150,7 @@ describe("handleExternalMessage", () =>
 		expect(handleExternalMessage(message, LOCKDOWN_BUILD)).toEqual(rejection("unsupported_version"));
 	});
 
-	it.each(["readSelection", "announce", "examState", "getState", "toString", "__proto__", "constructor", ""])("rejects the unknown type %j", type =>
+	it.each(["announce", "examState", "getState", "toString", "__proto__", "constructor", ""])("rejects the unknown type %j", type =>
 	{
 		expect(handleExternalMessage({ v: 1,
 																																	type }, LOCKDOWN_BUILD)).toEqual(rejection("unknown_type"));
@@ -194,6 +194,222 @@ describe("handleExternalMessage", () =>
 	});
 });
 
+/**
+ * @description Builds a readSelection message.
+ *
+ * @param {?(Object|Array|string)} [payload] - The payload to send; omitted when absent.
+ * @return {Object} - The message.
+ */
+function readSelection(payload)
+{
+	const message = { v: 1,
+																			type: "readSelection" };
+	if (arguments.length) message.payload = payload;
+
+	return message;
+}
+
+/**
+ * @description Records the channel actions a test wires in, the way events.js
+ * wires the real ones.
+ *
+ * @return {Object} - The actions, each a vi.fn.
+ */
+function recordedActions()
+{
+	return { readSelection: vi.fn(),
+										stop: vi.fn() };
+}
+
+describe("readSelection", () =>
+{
+	const ACCEPTED = { v: 1,
+																				ok: true,
+																				type: "readSelection" };
+
+	it("accepts the text right away and reads it after answering", async() =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(readSelection({ tabId: 7,
+																																															text: "Read this" }), LOCKDOWN_BUILD, actions)).toEqual(ACCEPTED);
+		expect(actions.readSelection).not.toHaveBeenCalled();
+		await Promise.resolve();
+		expect(actions.readSelection).toHaveBeenCalledWith("Read this", 7);
+	});
+
+	it("passes the text on exactly as sent", async() =>
+	{
+		const actions = recordedActions();
+		const text = "  First line\n\nSecond line, Proctorio  ";
+		handleExternalMessage(readSelection({ tabId: 0,
+																																								text }), LOCKDOWN_BUILD, actions);
+		await Promise.resolve();
+
+		expect(actions.readSelection).toHaveBeenCalledWith(text, 0);
+	});
+
+	it("accepts text of exactly 10000 code units, counting a surrogate pair as two", () =>
+	{
+		expect(READ_SELECTION_MAX_LENGTH).toBe(10000);
+		const text = "\u{1F600}".repeat(5000);
+		expect(text.length).toBe(10000);
+
+		expect(handleExternalMessage(readSelection({ tabId: 1,
+																																															text }), LOCKDOWN_BUILD, recordedActions())).toEqual(ACCEPTED);
+	});
+
+	it.each([
+		["text over the cap", { tabId: 1,
+																										text: "a".repeat(10001) }],
+		["empty text", { tabId: 1,
+																			text: "" }],
+		["blank text", { tabId: 1,
+																			text: " \n\t\u00A0 " }],
+		["non-string text", { tabId: 1,
+																								text: 42 }],
+		["null text", { tabId: 1,
+																		text: null }],
+		["missing text", { tabId: 1 }],
+		["missing tabId", { text: "x" }],
+		["a negative tabId", { tabId: -1,
+																									text: "x" }],
+		["a fractional tabId", { tabId: 1.5,
+																											text: "x" }],
+		["a string tabId", { tabId: "1",
+																							text: "x" }],
+		["an unsafe integer tabId", { tabId: 2 ** 53,
+																																text: "x" }],
+		["a NaN tabId", { tabId: Number.NaN,
+																				text: "x" }],
+		["an extra key", { tabId: 1,
+																					text: "x",
+																					lang: "en" }],
+		["an own __proto__ key", JSON.parse("{\"tabId\": 1, \"text\": \"x\", \"__proto__\": {}}")],
+		["a null payload", null],
+		["an array payload", [1, "x"]],
+		["a string payload", "x"]
+	])("refuses %s as malformed and reads nothing", async(label, payload) =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(readSelection(payload), LOCKDOWN_BUILD, actions)).toEqual(rejection("malformed"));
+		await Promise.resolve();
+		expect(actions.readSelection).not.toHaveBeenCalled();
+	});
+
+	it("refuses a readSelection with no payload as malformed", () =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(readSelection(), LOCKDOWN_BUILD, actions)).toEqual(rejection("malformed"));
+	});
+
+	it("answers ok even when the read fails later, and logs the failure", async() =>
+	{
+		const logged = vi.spyOn(console, "error").mockImplementation(() => null);
+		const actions = { readSelection: vi.fn().mockRejectedValue(new Error("no voice")),
+																				stop: vi.fn() };
+
+		expect(handleExternalMessage(readSelection({ tabId: 1,
+																																															text: "x" }), LOCKDOWN_BUILD, actions)).toEqual(ACCEPTED);
+		await new Promise(resolve => setTimeout(resolve, 0));
+		expect(logged).toHaveBeenCalledWith("lockdown channel action", expect.any(Error));
+		logged.mockRestore();
+	});
+
+	it("answers internal when no read action is wired", () =>
+	{
+		const logged = vi.spyOn(console, "error").mockImplementation(() => null);
+
+		expect(handleExternalMessage(readSelection({ tabId: 1,
+																																															text: "x" }), LOCKDOWN_BUILD)).toEqual(rejection("internal"));
+		logged.mockRestore();
+	});
+
+	it("gives an unknown extension no answer and reads nothing", async() =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(readSelection({ tabId: 1,
+																																															text: "x" }), fromExtension(randomExtensionId()), actions)).toBeNull();
+		await Promise.resolve();
+		expect(actions.readSelection).not.toHaveBeenCalled();
+	});
+});
+
+describe("stop", () =>
+{
+	const STOPPED = { v: 1,
+																			ok: true,
+																			type: "stop" };
+
+	/**
+	 * @description Builds a stop message with the given payload.
+	 *
+	 * @param {?(Object|Array|string|number)} payload - The payload to send.
+	 * @return {Object} - The message.
+	 */
+	function stopWith(payload)
+	{
+		return { v: 1,
+											type: "stop",
+											payload };
+	}
+
+	it("answers ok and stops that tab's lockdown read after answering", async() =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(stopWith({ tabId: 7 }), LOCKDOWN_BUILD, actions)).toEqual(STOPPED);
+		expect(actions.stop).not.toHaveBeenCalled();
+		await Promise.resolve();
+		expect(actions.stop).toHaveBeenCalledWith(7);
+		expect(actions.readSelection).not.toHaveBeenCalled();
+	});
+
+	it("accepts tab 0", async() =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(stopWith({ tabId: 0 }), LOCKDOWN_BUILD, actions)).toEqual(STOPPED);
+		await Promise.resolve();
+		expect(actions.stop).toHaveBeenCalledWith(0);
+	});
+
+	it("refuses a stop with no payload as malformed: the tab is required", async() =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage({ v: 1,
+																																	type: "stop" }, LOCKDOWN_BUILD, actions)).toEqual(rejection("malformed"));
+		await Promise.resolve();
+		expect(actions.stop).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		["an empty payload", {}],
+		["a null payload", null],
+		["a negative tabId", { tabId: -1 }],
+		["a fractional tabId", { tabId: 1.5 }],
+		["a string tabId", { tabId: "1" }],
+		["an unsafe integer tabId", { tabId: 2 ** 53 }],
+		["a NaN tabId", { tabId: Number.NaN }],
+		["an extra key", { tabId: 1,
+																					text: "x" }],
+		["an own __proto__ key", JSON.parse("{\"tabId\": 1, \"__proto__\": {}}")],
+		["an array payload", [1]],
+		["a number payload", 1]
+	])("refuses %s as malformed and stops nothing", async(label, payload) =>
+	{
+		const actions = recordedActions();
+
+		expect(handleExternalMessage(stopWith(payload), LOCKDOWN_BUILD, actions)).toEqual(rejection("malformed"));
+		await Promise.resolve();
+		expect(actions.stop).not.toHaveBeenCalled();
+	});
+});
+
 describe("registerExternalMessageListener", () =>
 {
 	/**
@@ -216,6 +432,23 @@ describe("registerExternalMessageListener", () =>
 
 		expect(listener(HELLO, LOCKDOWN_BUILD, sendResponse)).toBeUndefined();
 		expect(sendResponse).toHaveBeenCalledWith(HELLO_ANSWER);
+		chrome.runtime.onMessageExternal.removeListener(listener);
+	});
+
+	it("hands a lockdown read to the actions it was registered with", async() =>
+	{
+		const actions = recordedActions();
+		registerExternalMessageListener(actions);
+		const listener = chrome.runtime.onMessageExternal.listeners.at(-1);
+		const sendResponse = vi.fn();
+
+		listener(readSelection({ tabId: 3,
+																											text: "Question one" }), LOCKDOWN_BUILD, sendResponse);
+		await Promise.resolve();
+		expect(sendResponse).toHaveBeenCalledWith({ v: 1,
+																																														ok: true,
+																																														type: "readSelection" });
+		expect(actions.readSelection).toHaveBeenCalledWith("Question one", 3);
 		chrome.runtime.onMessageExternal.removeListener(listener);
 	});
 

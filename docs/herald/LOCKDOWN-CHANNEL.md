@@ -81,20 +81,100 @@ request.
 | Type | Payload | Result |
 |---|---|---|
 | `hello` | none | `version` (Herald's manifest version), `types` (every type this Herald accepts) |
+| `readSelection` | `{tabId, text}` | none: `ok: true` means Herald accepted the text, not that speech started |
+| `stop` | `{tabId}` | none: `ok: true` also when that tab had no read to stop |
 
 `hello` is the capability handshake. Herald and the lockdown extension release
 on separate schedules, so the lockdown side should call `hello` first and only
 send a type that appears in `types`. An older Herald answers a newer type with
 `unknown_type`, never with a wrong action.
 
-Feature types (`readSelection`, `announce`, `examState`, `getState`) are not
+The remaining feature types (`announce`, `examState`, `getState`) are not
 implemented. Each arrives with its own work item and its own entry in this
 table.
+
+### readSelection
+
+Reads text the student selected in the exam (WI-B, the "Read with Herald"
+menu). The payload is a plain object with exactly two keys:
+
+- `tabId`: the exam tab the selection came from, a non-negative safe integer.
+  Herald keeps it with the read, so a `stop` for that tab can find it; it
+  reads the text in the message and never the tab.
+- `text`: the selected text, a string that is not empty after trimming, at
+  most 10000 UTF-16 code units (`READ_SELECTION_MAX_LENGTH`). The lockdown
+  truncates to the first 10000 UTF-16 code units, never mid surrogate pair;
+  Herald answers `malformed` above 10000.
+
+Any other payload answers `malformed`. Herald answers before it looks up a
+voice, then speaks in its service worker:
+
+- **No page access.** The text is spoken with `chrome.tts` from the service
+  worker: no script in the exam page, no player frame, no highlighting, and no
+  permission beyond `tts`.
+- **The student's settings, local voices only.** Herald uses the student's
+  voice, rate, pitch, volume and pronunciation corrections, but only local
+  voices, whatever exam-safe mode says: a pinned network voice is replaced by
+  a local one, so exam text never leaves the device. The language is detected
+  from the text with the same confidence bar as page reading, else the
+  browser's UI language. With no local voice for it, nothing is spoken and the
+  error is logged in Herald's service worker console.
+- **One utterance**, the text as written. Text shaped like an SSML document is
+  escaped, so it is read rather than interpreted.
+- **A new read replaces the old one.** `readSelection` stops whatever Herald is
+  reading, an earlier lockdown read or the student's own page reading, before
+  it speaks. The student's own reading, started from Herald, replaces a
+  lockdown read the same way.
+- **Herald's own controls work on it.** Herald's play, pause and stop
+  shortcuts and popup buttons pause, resume and stop a lockdown read; forward
+  and rewind do nothing during one. Voices that cannot pause (Google and
+  Chrome OS native voices) stop instead.
+
+### stop
+
+Stops a read that came from `readSelection` with the same `tabId`. The payload
+is a plain object with exactly one key:
+
+- `tabId`: the tab whose read to stop, a non-negative safe integer, as in
+  `readSelection`. Any other payload, or none, answers `malformed`.
+
+The lockdown sends it right away, with no `hello` first, at each transition in
+a tab it sent a read for since that tab's last `stop`: when the student moves
+to another question (Next, Previous, a jump) and when the exam ends or is
+submitted. It never stops a read from another tab or the student's own Herald
+reading, and it answers `ok: true` whether or not a read was stopped. The
+lockdown's own `chrome.tts.stop()` cannot do this: it stops only the
+lockdown's own speech.
+
+**Order.** Chrome delivers one extension's messages to Herald in the order
+they were sent (measured on Chrome 156: 400 of 400 in order, with Herald's
+worker awake and asleep), and Herald acts on them in that order. A `stop` for
+a tab cancels that tab's read even while Herald is still preparing it
+(stopping its player, choosing a voice, writing its record), and a
+`readSelection` sent after a `stop` is read. A `stop` for another tab leaves
+a read alone, in flight or speaking.
+
+Herald keeps a "lockdown read" record in `chrome.storage.session` (no text,
+only an id, the tab, the start time and the paused flag), because the service
+worker may sleep in the middle of a read and must still find it when `stop`,
+or one of Herald's own controls, wakes it. With no live record for the tab,
+`stop` does nothing.
 
 ## Tests
 
 - `test/ExternalMessaging.Test.js`: every rule above. It adds the hash of an
   ID generated for the run to the list, so no lockdown ID appears in it.
+- `test/LockdownRead.Test.js`: how a lockdown read is spoken, replaced,
+  paused, stopped per tab, and found again after a service worker restart,
+  and that a stop or a newer read cancels a read still being prepared.
+- `test/Events.Test.js`: the service worker wiring: a lockdown read stops
+  Herald's player and touches no page, the student's own read and another
+  tab's read survive a lockdown `stop`, messages take effect in the order they
+  arrive, and Herald's shortcuts drive a lockdown read.
+- `test/ServiceWorkerGraph.Test.js`: the service worker never loads
+  `tts-engines.js`. Loading it stops all of Herald's speech, and the worker
+  loads its modules again each time it wakes, also in the middle of a
+  lockdown read.
 - `test/Sha256.Test.js`: the hash against the FIPS 180-4 examples and
   node:crypto.
 - `e2e/LockdownChannel.Test.js`: real Chromium with two stub lockdown
